@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="什么会造成线程死锁？如何解决？ 造成原因:  互斥条件：即多个线程在某一个时间内都需要获取相同资源 请求与保持条件：即一个线程因请求资源而阻塞时，对自身已获得的资源不会释放 不剥夺条件：在一个线程未执行完任务之前，不能剥夺它已获得资源 循环等待条件: 多个线程形成一种循环等待相应资源的关系。在多线程开发中，如果一个线程X持有资源A的锁，需要获得资源B的锁，而线程Y持有资源B的锁，需要获得资源A的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="问题汇总">
+<meta property="og:url" content="https://marchen-y.github.io/2019/05/08/%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/index.html">
+<meta property="og:site_name" content="Marchen的博客">
+<meta property="og:description" content="什么会造成线程死锁？如何解决？ 造成原因:  互斥条件：即多个线程在某一个时间内都需要获取相同资源 请求与保持条件：即一个线程因请求资源而阻塞时，对自身已获得的资源不会释放 不剥夺条件：在一个线程未执行完任务之前，不能剥夺它已获得资源 循环等待条件: 多个线程形成一种循环等待相应资源的关系。在多线程开发中，如果一个线程X持有资源A的锁，需要获得资源B的锁，而线程Y持有资源B的锁，需要获得资源A的">
+<meta property="article:published_time" content="2019-05-08T02:00:34.000Z">
+<meta property="article:modified_time" content="2019-08-04T13:41:03.610Z">
+<meta property="article:author" content="Marchen">
+<meta property="article:tag" content="Java，并发编程，分布式，源码">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"always","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://marchen-y.github.io/2019/05/08/问题汇总/"/>
+
+
+
+
+
+  <title>问题汇总 | Marchen的博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Marchen的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">分享一切喜欢的事物</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-schedule">
+          <a href="/schedule/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            日程表
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://marchen-y.github.io/2019/05/08/%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Marchen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Marchen的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">问题汇总</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-08T10:00:34+08:00">
+                2019-05-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ol>
+<li><p>什么会造成线程死锁？如何解决？<br> 造成原因:</p>
+<ul>
+<li>互斥条件：即多个线程在某一个时间内都需要获取相同资源</li>
+<li>请求与保持条件：即一个线程因请求资源而阻塞时，对自身已获得的资源不会释放</li>
+<li>不剥夺条件：在一个线程未执行完任务之前，不能剥夺它已获得资源</li>
+<li>循环等待条件: 多个线程形成一种循环等待相应资源的关系。<br>在多线程开发中，如果一个线程X持有资源A的锁，需要获得资源B的锁，而线程Y持有资源B的锁，需要获得资源A的锁，此时便会发生死锁的情况。<br>解决：<br>只需要打破上述4个条件中的某一个就会打破死锁。</li>
+</ul>
+</li>
+<li><p>红黑树是什么？请说明下特点和实现原理？</p>
+</li>
+<li><p>什么是TCP协议的三次握手，做了什么？为什么不能使用两次握手协议？<br>答：TCP协议是TCP可靠性实现的基础和保证。</p>
+<ul>
+<li>当客户端需要发消息给服务端时，客户端首先会发送给服务端一个消息、消息头中的SYN标志,seq=x给服务端；</li>
+<li>服务端收到客户端发送的消息之后，检查如果是一个消息头如果有SYN=1,则返回给客户端SYN, ACK标志，以及返回给客户端seq=y和ack=x+1;</li>
+<li>客户端收到服务端的确认消息之后，检查消息头中是否含有ACK标志，如果含有则返回ACK标，以及返回给服务端seq=x+1和ack=y+1。<br>三次握手协议保证了传输的可靠性，如果是两次握手协议，某一刻客户端发送的消息在网络中滞留了，客户端没有收到服务端发送的消息，会继续发送消息给服务端，服务端收到了该消息并给予确认。如果采用的是两次握手，则滞留的消息到服务端后，服务端又会重新建立连接，而客户端会忽略该消息，从而导致服务端的连接浪费。</li>
+</ul>
+</li>
+<li><p>如何实现多个线程满足某个条件时继续往下执行？CyclicBarrier和CountdownLatch的区别是什么？<br>答：实现多个线程满足条件继续执行可以采用java.util.councurrent包下的CyclicBarrier和CountdownLatch类。</p>
+<ul>
+<li>CountDownLatch是一个任务等待其他任务执行完成之后才执行，内部主要使用队列同步器(AQS)实现，实现了其中的tryAcquireShared(int arg)和tryReleaseShared(int arg)方法实现；只能使用一次</li>
+<li>CyclicBarrier是一组线程等待某个状态后再全部同时执行，内部使用可重入锁和条件变量实现，当调用await()方法时，会加锁然后判断是否count为0，若为0，则唤醒所有的线程，否则进入自循环来进行阻塞等待。</li>
+<li>信号量，信号量可以控制访问某资源的线程数，通过acquire()和release()来获取访问资源以及释放访问资源。内部也是采用队列同步器(AQS)实现，并且实现了公平获取信号和非公平获取。</li>
+</ul>
+</li>
+<li><p>JVM启动参数你都知道哪些？说明下是干什么用的？<br>答：JVM启动参数分之为三类：标准参数、非标准参数和非Stable参数</p>
+<ul>
+<li><p>标准参数：</p>
+<blockquote>
+<p>-verbose:class 输出JVM载入类的相关信息，当报异常<br>-verbose:gc 输出每次GC的相关信息<br>-verbose:jni 输出native方法调用的相关情况,一般用于诊断jni调用的错误信息</p>
+</blockquote>
+</li>
+<li><p>非标准参数：</p>
+<blockquote>
+<p>-Xms256M 设置堆内存的大小<br>-Xmx1024M 设置堆的最大内存的大小<br>-Xms128M 设置新生代的大小<br>-Xss1M 设置每个线程的堆栈大小</p>
+</blockquote>
+</li>
+<li><p>非Stable参数:</p>
+<table>
+<thead>
+<tr>
+<th align="center">命令及参数</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">-XX:-DisableExplicitGC</td>
+<td align="left">禁用System.gc()</td>
+</tr>
+<tr>
+<td align="center">-XX:-UseConcMarkSweepGC</td>
+<td align="left">对老年代采用并发标记算法进行GC</td>
+</tr>
+<tr>
+<td align="center">-XX:-UseParallelGC</td>
+<td align="left">启用并行GC</td>
+</tr>
+<tr>
+<td align="center">-XX:-UseSerialGC</td>
+<td align="left">启用串行GC</td>
+</tr>
+<tr>
+<td align="center">-XX:MaxNewSize=size</td>
+<td align="left">设置新生代内存的最大值</td>
+</tr>
+<tr>
+<td align="center">-XX:MaxPermSize=size</td>
+<td align="left">设置永久代占用内存的最大值</td>
+</tr>
+<tr>
+<td align="center">-XX:NewRation=2</td>
+<td align="left">设置新生代和老年代的比例</td>
+</tr>
+<tr>
+<td align="center">-XX:ErrorFile=XXX.log</td>
+<td align="left">保存错误日志到文件中</td>
+</tr>
+<tr>
+<td align="center">-XX:HeapDumpPath=XXX.hprof</td>
+<td align="left">指定导出堆信息时的路径</td>
+</tr>
+<tr>
+<td align="center">-XX:-HeapDumpOutOfMemoryError</td>
+<td align="left">指定导出堆信息时的路径</td>
+</tr>
+<tr>
+<td align="center">-XX:-PrintGC</td>
+<td align="left">输出GC的相关信息</td>
+</tr>
+<tr>
+<td align="center">-XX:-PrintDC Details</td>
+<td align="left">输出GC的详细信息</td>
+</tr>
+<tr>
+<td align="center">-XX:-PrintGCTimeStamps</td>
+<td align="left">输出每次GC的时间戳</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+<li><p>Cookie、Session、Token的区别是什么？</p>
+</li>
+<li><p>Java内存泄露造成的原因是什么？怎么排查与解决？<br>答：内存泄露造成的原因包含两个条件：泄露对象到GC Root拥有有向图，从而造成虚拟机GC时不能回收对象；二是该对象是无用对象。<br>排查：</p>
+<ul>
+<li>首先通过jps 命令查看java是哪个进程</li>
+<li>通过jstate -gcutil vmid time count查看内存的占比情况</li>
+<li>通过jmap -histo:live vmid或jmap -dump:live,format=b,file=xxx.hprof命令输出某一刻的堆栈的情况，查看占用内存比较大的对象，进行合理分析。</li>
+<li>如果不能够判断出代码问题出现在什么地方？可以通过ma(memory analyiz)分析工具分析下是哪块代码造成，然后进行修改。</li>
+</ul>
+</li>
+<li><p>缓存穿透、缓存雪崩、缓存击穿造成的原因是什么？怎么解决？<br>答：</p>
+<ul>
+<li>缓存穿透：客户大量的访问缓存中不存在的键值，从而导致应用大量的去数据库中进行查询导致数据库压力过大。<blockquote>
+<ol>
+<li>对于用户访问不存在的键值将访问数据的数据也保存到缓存中，设置缓存失效的时间比较短即可；</li>
+<li>使用布隆过滤器，过滤用户请求的键值数据</li>
+</ol>
+</blockquote>
+</li>
+<li>缓存雪崩：缓存中的数据在某一刻大量的失效，从而导致此刻大量用户请求到达时，导致都去查询数据库，从而导致数据库的压力较大，设置有可能应用崩溃。<blockquote>
+<ol>
+<li>在设置缓存的键值失效时间时，对设置的时间再加上一个随机的时间，从而使键值不会在某一刻全部失效</li>
+<li>对于热点数据，不设置失效时间，即永久存在</li>
+<li>若是缓存数据库是分布式部署，将热点数据均匀的分布在不同的缓存数据库中</li>
+</ol>
+</blockquote>
+</li>
+<li>缓存击穿：缓存数据库的某一条数据失效，而客户在此刻有大量请求进入，从而导致请求都去查询数据库，导致数据库压力较大。<blockquote>
+<ol>
+<li>设置互斥锁</li>
+<li>设置热点数据不过期</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>redis怎么实现高可用？<br> 答: redis实现高可用，可以采用集群部署以及哨兵模式。<br> redis自身提供了集群部署的功能，采用redis-strib来实现集群部署。redis集群部署采用的一致性hash的数据结构，将redis需要保存数据的分为16384个槽，然后将些槽分布到集群中的redis节点，如果一个数据需要保存到redis时，即可通过获取键的hash值，算出键应该保存在哪个槽，从而计算保存在redis的哪个节点上。这样有个不好的地方是，如果需要后期扩展的时候，我们遵循一致性hash算法的特点，将顺时针临近的一个节点需要重新计算键的保存节点。所以最好在前期设计的时候就将redis的节点数量设置好。</p>
+</li>
+<li><p>redis哨兵模式主要解决什么问题以及实现的原理？<br>答：哨兵模式主要有两个功能，其一是监控各个redis节点是否正常工作；其二是当哨兵认为redis数据库处于客观下线的时候会将从数据库升级为主数据库。<br>实现原理：</p>
+<ul>
+<li>哨兵节点会每隔10秒钟向主数据库发送info命令， 用于获取主数据库上从数据库的信息并且建立相关连接，并且监控主从数据库的列表信息。</li>
+<li>哨兵节点会每隔2秒钟向其主从数据库的<em>sential</em>:hello频道发送自己的哨兵节点信息，用于向其他哨兵节点通知自己的信息。</li>
+<li>哨兵节点会每隔1s表向主数据库发送ping命令，查看redis数据库是否还正常工作。</li>
+</ul>
+</li>
+<li><p>redis复制的实现原理？<br>答：</p>
+<ul>
+<li>当时用slaveof命令关联主数据库时，会建立一条连接，然后向主数据库sync/psync命令(如果redis是2.8版本之前，则发送的是sync命令，之后版本发送的是psync命令。)</li>
+<li>主数据库会在后台启动rdb保存，在保存期间会将客户新增的命令保存到缓存池，等到rdb传输完成之后，会将缓冲池中的命令传输给redis从数据库。</li>
+<li>主数据库发生更新时，会将命令放入到积压队列中，并记录传输给从数据库的偏移量。如果从数据库在半路重新同步时，只需要传入自身的主数据库Id和偏移量，主数据库会判断自身是否是这个id,然后判断偏移量是否还在，如果还在就将偏移量之后的数据传给从数据库，否则全量同步。</li>
+</ul>
+</li>
+<li><p>redis对于内部不足时都有哪些策略淘汰键？<br>答：</p>
+<ul>
+<li>volatile-random: 设置了过期时间的键中随机淘汰</li>
+<li>allkeys-random： 所有的键随机淘汰</li>
+<li>volatile-lru： 设置了过期时间的键中最近最少使用原则</li>
+<li>allkeys-lru： 所有键中使用最近最少使用原则</li>
+<li>volatile-ttl 设置过期时间即将过期的键淘汰</li>
+<li>noeviction: 不淘汰键，只返回错误</li>
+</ul>
+</li>
+<li><p>redis对于键过期的执行策略有哪些？<br>答：</p>
+<ul>
+<li>定时删除：在创建某个键时，同时执行这个键的过期删除定时器，当键过期时，定时器会删除该键，这种策略使用起来比较麻烦，redis未使用到。</li>
+<li>惰性删除：当客户端再次访问该键时，如果该键已过期，redis则会删除该键。</li>
+<li>定期删除：每隔一段时间，redis会检查内部的键是否过期，然后删掉过期的键。</li>
+</ul>
+</li>
+<li><p>MyBatis中$和#符号的区别</p>
+</li>
+<li><p>Java虚拟机在什么情况下会触发Full GC(老年代GC)?</p>
+<ul>
+<li>虚拟机启动了explicitGC的情况下，在代码中使用了System.gc的情况下，会触发Full GC。</li>
+<li>大对象直接进入老年代，但老年代不能的内存不能满足大对象的内存，从而会触发Full GC。</li>
+<li>分配担保机制失败的情况下，会触发一次Full GC。</li>
+<li>Full GC一般情况下都会伴随着一次Monitor GC。</li>
+</ul>
+</li>
+<li><p>Java生产问题排查步骤?<br>答：针对不同的情况查问题也不同</p>
+<ul>
+<li>首先如果是界面报了Exception的相关错误，则可以查看Tomcat日志或者自定义的生产日志来查看报错具体的类和方法，定位问题是什么导致。</li>
+<li>如果是报出Error相关的异常，也可以通过查看日志来查找问题，查看是否是内存溢出还是内存泄露或者其他问题。</li>
+<li>如果界面发生响应速度慢、卡死、无响应、没有详细日志的情况，可以通过Top、vmstat、jps、jstat、jmap、jstack等命令来查看虚拟机的详细情况，分析是否发生了死锁或者频繁GC造成的相应变慢/卡死情况。</li>
+<li>如果发生系统崩溃，可以通过添加启动参数-XX:errorFile=”XXX” -XX:heapDumpOnOutofMemory的启动参数，查看是否有出错日志来定位问题在哪里。</li>
+</ul>
+</li>
+<li><p>Java中ArrayList、LinkedList、Vector的区别？</p>
+</li>
+<li><p>Spring中BeanFactory和ApplicationContext的区别？<br>答：BeanFactory和ApplicationContext都是Spring容器。BeanFactory是Spring最底层的接口，只提供了getBean的相关方法。ApplicationContext继承BeanFactory，但提供了更多的功能。</p>
+<ul>
+<li>ApplicationContext针对实现了BeanPostProcessor和BeanFactoryPostProcess的bean，只需要在XML中配置或者在类上声明即可，不需要手动添加。</li>
+<li>ApplicationContext提供了资源访问的方法。</li>
+<li>ApplicationContext支持事件机制，可以监听相关事件</li>
+<li>ApplicationContext提供了国际化支持，</li>
+<li>ApplicationContext在不需要重启服务的情况下可以刷新容器内部的Bean实例</li>
+<li>ApplicationContext采用的是饿加载机制，即启动的时候加载实例化Bean，BeanFactory采用的是获取Bean信息时实例化。</li>
+</ul>
+</li>
+<li><p>Spring中IOC你是怎么理解的？<br>答：在未使用Spring IOC开发时，对象的实例化一般由开发人员自己实例化和管理，使用new关键字来实例化。而Spring IOC是将对象的实例化和周期管理交给了BeanFactory去处理，开发人员不需要管理对象的创建和销毁，只需要关注自己的业务处理即可。</p>
+</li>
+<li><p>Spring中的事务传播机制有哪些？<br>答：</p>
+<ul>
+<li>PROPAGATION.REQUIRED: 默认的事务传播行为，如果当前有事务就加入到事务中，如果当前无事务则创建一个事务。</li>
+<li>PROPAGATION.SUPPORTS：支持当前的事务，如果没有事务，则使用非事务的方式执行</li>
+<li>PROPAGATION.MANDATORY：支持当前的事务，如果没有事务则抛出异常。</li>
+<li>PROPAGATION.REQUIES_NEW：如果当前有事务，则挂起当前的事务创建一个新的事务执行业务</li>
+<li>PROPAGATION.NOT_SUPPORTED： 不支持当前事务，如果存在当前事务，则将当前事务挂起，执行完毕之后在执行上下文事务</li>
+<li>PROPAGATION.NEVER：不支持当前事务，如果存在当前事务则抛出异常</li>
+<li>PROPAGATION.NESTED：支持事务嵌套，即新创建一个新的事务添加到原来的事务中。</li>
+</ul>
+</li>
+<li><p>Spring的事务隔离级别有哪些？<br>答：</p>
+<ul>
+<li>DEFAULT: Spring默认的事务隔离级别，采用数据库自身的事务隔离级别机制。</li>
+<li>READ_UNCOMMITED：未提交读。事务未提交时，其它事务可能会读取到当前的处理结果。会造成脏读、不可重复度、幻读。</li>
+<li>READ_COMMITED: 提交读。事务提交之后，其它事务可以访问到当前的结果，会造成不可重复度、幻读。</li>
+<li>REPEATABLE_READ：可重复读。一个事务可以重复查询而不会出现两次查询结果不一致的问题。避免不了幻读问题。</li>
+<li>SERIALIZABLE: 串行化。读取和修改操作都会上锁，并发性差。</li>
+</ul>
+</li>
+<li><p>Spring AOP理解？<br>答：</p>
+<ul>
+<li>一般在开发中使用的都是OOP，面向对象开发，而AOP的意思是面向切面开发，这在一方面弥补了OOP开发的缺点。</li>
+<li>切点：描述哪些类、哪些方法。</li>
+<li>连接点：描述程序代码中一些比较有特定意义的点，比如是类初始化、方法执行前、方法执行后。</li>
+<li>增强：需要增加的功能代码。</li>
+<li>切面：由切点和曾庆组成的组合。</li>
+<li>织入：将增强功能添加到切面的过程。</li>
+<li>代理：目标对象添加之后返回的对象就是代理。</li>
+</ul>
+</li>
+<li><p>Spring AOP都有哪些增强？</p>
+<ul>
+<li>前置增强：指在方法执行前，通过实现BeforeAdvice接口</li>
+<li>后置增强：指在方法执行完成后，通过实现AfterReturningAdvice接口</li>
+<li>环绕增强：指在方法执行前和执行后分别添加增强，通过实现MethodInceptor接口</li>
+<li>异常增强：指在方法抛出异常的情况下执行，通过实现ThrowsAdvice接口实现。</li>
+<li>引介增强：通过给指定的类添加属性或方法来扩展原来的方法。</li>
+</ul>
+</li>
+<li><p>Spring AOP都有哪几种实现，区别是什么？<br>答：</p>
+<ul>
+<li>JDK动态代理：JDK动态代理目标对象必须实现接口，</li>
+<li>CGLIB动态代理：CGLIB动态代理是采用生成子类的方式生成的代理对象的，因此不需要实现接口。CGLIB不能对目标对象中是final方法、private方法修饰生成代理。CGLIB的执行性能相对JDK动态代理较高，但创建代理的效率比较差。</li>
+</ul>
+</li>
+<li><p>Spring AOP的实现原理是什么？<br>答：</p>
+<ul>
+<li>Spring AOP在启动的时候会向IOC注册一个Bean实例的后置处理器，该后置处理器会在BeanFactory第一次调用getBean方法或是使用ApplicationContext初始化时，利用该后置处理器创建出一个目标对象的代理类返回。</li>
+<li>Spring在使用xml配置时，会将XML中的配置的增强注册到BeanRegistry中，在实例出Bean的时候进入到后置处理器，Spring AOP会发现那些适合目标对象的Advisor，将其添加到invoke方法中，从而生成增强。</li>
+</ul>
+</li>
+<li><p>Spring Boot都有哪些特性？<br>答：</p>
+<ul>
+<li>简化配置，Spring Boot内部使用了大量的自动配置，减少了开发人员进行不必要的配置。</li>
+<li>简化部署，Spring Boot内嵌了Tomcat、Jetty等web容器，开发人员不需要再部署一个Tomcat环境才能运行Web应用程序</li>
+<li>简化监控，Spring Boot内嵌了Actuator等依赖，可以直接使用rest方式查看应用的健康情况。</li>
+<li>简化编码，Spring Boot提供了大量的starter依赖包，开发人员不需要担心依赖包之间的冲突和查找需要的依赖包所花费的时间。</li>
+</ul>
+</li>
+<li><p>Spring  Boot是怎么实现自动配置的？</p>
+<ul>
+<li>在SpringApplication注解中有一个非常重要的注解@EnableAutoConfiguration，@EnableAutoConfiguration注解中有个@Import(AutoConfigurationImportSelector)注解，该注解在ConfigurationClassPostProcess工厂后置处理器中使用会解析Spring.factories中的EnableAutoConiguation实现类将其添加到Bean工厂中，从而实现自动配置。</li>
+</ul>
+</li>
+<li></li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/" rel="next" title="集合详解-HashMap">
+                <i class="fa fa-chevron-left"></i> 集合详解-HashMap
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/13/Synchornized%E5%92%8CLock%E8%AF%A6%E8%A7%A3/" rel="prev" title="Synchronized和lock详解">
+                Synchronized和lock详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/author.jpg"
+                alt="Marchen" />
+            
+              <p class="site-author-name" itemprop="name">Marchen</p>
+              <p class="site-description motion-element" itemprop="description">原来我很快乐，只是不愿承认</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Marchen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.4"></script>
+  <script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.4"></script>
+
+
+  
+
+</body>
+</html>
+<script type="text/javascript" src="/js/src/love.js"></script>

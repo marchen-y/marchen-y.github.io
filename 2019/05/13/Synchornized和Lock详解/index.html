@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;线程是最小的运算逻辑单元，合理的使用线程可以充分利用CPU资源，线程之间采用堆内存的方式进行交互，多个线程之间共享堆内存，但这会存在一个问题，如果不合理的使用线程，就会导致代码执行的安全性和准确性。那么Java是如何解决呢？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Synchronized和lock详解">
+<meta property="og:url" content="https://marchen-y.github.io/2019/05/13/Synchornized%E5%92%8CLock%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Marchen的博客">
+<meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;线程是最小的运算逻辑单元，合理的使用线程可以充分利用CPU资源，线程之间采用堆内存的方式进行交互，多个线程之间共享堆内存，但这会存在一个问题，如果不合理的使用线程，就会导致代码执行的安全性和准确性。那么Java是如何解决呢？">
+<meta property="article:published_time" content="2019-05-13T10:59:09.000Z">
+<meta property="article:modified_time" content="2019-06-06T11:39:14.209Z">
+<meta property="article:author" content="Marchen">
+<meta property="article:tag" content="Java，并发编程，分布式，源码">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"always","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://marchen-y.github.io/2019/05/13/Synchornized和Lock详解/"/>
+
+
+
+
+
+  <title>Synchronized和lock详解 | Marchen的博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Marchen的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">分享一切喜欢的事物</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-schedule">
+          <a href="/schedule/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            日程表
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://marchen-y.github.io/2019/05/13/Synchornized%E5%92%8CLock%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Marchen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Marchen的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Synchronized和lock详解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-13T18:59:09+08:00">
+                2019-05-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;线程是最小的运算逻辑单元，合理的使用线程可以充分利用CPU资源，线程之间采用堆内存的方式进行交互，多个线程之间共享堆内存，但这会存在一个问题，如果不合理的使用线程，就会导致代码执行的安全性和准确性。那么Java是如何解决呢？</p>
+<a id="more"></a>
+
+<h3 id="Synchronized"><a href="#Synchronized" class="headerlink" title="Synchronized"></a>Synchronized</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Synchronized内部通过对象内部的一个监视器锁(Monitor)实现的，监视器锁依赖于底层操作系统的Mutex Lock来实现的，因此线程之间切换会涉及到从用户态到系统态的数据转移，状态之间的数据转移会消耗比较长的时间，因此Synchronized的同步机制在初期效率非常的低。在jdk1.6版本之后，Java对这些做了比较大的改进，添加了偏向锁、轻量级锁、重量锁等机制，减少了操作底层系统锁的概率，提升了Synchorized的性能。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;了解偏向锁、轻量级锁、重量级锁之前，需要了解下Java对象的基础知识，Java对象在堆内存中如何保存的。</p>
+<h4 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;偏向锁是针对在应用程序块中只有一个线程执行的优化，获取偏向锁的步骤如下：</p>
+<ol>
+<li>判断锁标志位是否为01和是否偏向锁标志为0，则表明其他线程未抢占过该资源。</li>
+<li>使用CAS将当前线程ID设置到对象头中的线程ID中，如果成功，则表明该线程已抢占到该资源，继续执行后续代码，否则执行步骤4</li>
+<li>CAS设置线程ID失败，表名有其它线程正在占用该资源，此时会进行锁升级为轻量级锁。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由上述操作步骤可以看出，偏向锁只使用了一次CAS操作，操作成功则会执行同步代码块，这样对于只有一个线程抢占资源的同步块非常的高效，如果多个线程抢占资源时则会进入到轻量级锁的判断。</li>
+</ol>
+<h4 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a>轻量级锁</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;轻量级锁是为了提高多个线程交替的抢占资源时的性能，获取轻量级锁的步骤如下：</p>
+<ol>
+<li>当一个线程需要获取同步资源时，如果此时的锁状态为无锁的状态(锁的标志位01,是否偏向锁为0),虚拟机会在栈中创建一个名为锁记录的空间。</li>
+<li>拷贝当前的锁对象头中的元数据到锁记录的空间中。</li>
+<li>使用CAS操作尝试将对象的元数据的指针指向锁记录的的指针，并将锁记录中的owner指针指向对象，若更新成功则执行步骤4，,否则执行步骤5。</li>
+<li>更新成功，该线程则拥有了对象的锁，此时将对象头中的锁标志设置为00。</li>
+<li>更新操作失败，虚拟机会检查对象头中的指针是否指向当前线程的栈帧，如果指向则表明该线程已经持有了该对象的锁，否则说明有其它线程也在竞争该资源，此时升级为重量级锁。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;轻量级锁每一次获取和释放都使用了CAS操作，相比偏向锁只在第一次获取锁时使用一次CAS操作明显复杂很多，但轻量级锁能够自己释放锁，这个是偏向锁做不到的，这也是轻量级锁能够在多线程交替执行时能适用的因素。</li>
+</ol>
+<h4 id="重量锁"><a href="#重量锁" class="headerlink" title="重量锁"></a>重量锁</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;重量级锁是操作底层系统的信号量，如果未抢占到资源则会阻塞，如果抢占到资源则会进行线程的切换，会引发数据从用户态到内核态的转移，从而影响性能。</p>
+<hr>
+<h3 id="锁-Lock"><a href="#锁-Lock" class="headerlink" title="锁(Lock)"></a>锁(Lock)</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock是Java提供的另一种同步机制，其内部主要使用同步队列器(AQS)实现，之后会详细讲解AQS的内部实现，这里先不做分析。Lock自身需要显示的获取锁和释放锁，相比Synchronized显得比较麻烦，但也拥有Synchronized许多没有的特性。</p>
+<h4 id="Lock的优势"><a href="#Lock的优势" class="headerlink" title="Lock的优势"></a>Lock的优势</h4><ol>
+<li>可尝试的获取锁，如果获取到锁则返回true，如果获取失败则返回false。</li>
+<li>在规定时间内获取锁，如果在时间内获取到锁，则返回true，否则返回false。</li>
+<li>在获取锁的等待过程中可响应中断，在获取到锁之后不会被interrupt()方法中断的。</li>
+<li>Lock可以支持更复杂的业务场景，比如说需要先获取到锁A，然后在获取锁B，释放时先释放锁A,在释放锁B，使用Lock很简单则很简单。</li>
+<li>Lock可以支持公平锁，非公平锁、读写锁等，并且自己可以实现自己需要的锁功能。</li>
+</ol>
+<h4 id="Lock的方法模版"><a href="#Lock的方法模版" class="headerlink" title="Lock的方法模版"></a>Lock的方法模版</h4><table>
+<thead>
+<tr>
+<th align="center">方法名</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">lock()</td>
+<td align="left">获取锁,如果获取不到则一直阻塞</td>
+</tr>
+<tr>
+<td align="center">tryLock()</td>
+<td align="left">尝试获取锁,如果未获取到则返回false,否则返回true</td>
+</tr>
+<tr>
+<td align="center">tryLock(long time, TimeUnit unit)</td>
+<td align="left">在规定时间尝试获取锁,如果在时间内获取到锁则返回true,否则返回false</td>
+</tr>
+<tr>
+<td align="center">lockInterruptibly()</td>
+<td align="left">在获取锁的等待过程中可响应中断</td>
+</tr>
+<tr>
+<td align="center">unlock()</td>
+<td align="left">释放锁，获取锁必须有释放锁的动作，一般将释放锁放在finally代码块中</td>
+</tr>
+<tr>
+<td align="center">newCondition</td>
+<td align="left">创建一个新的等待条件，相当于在Synchronized中的await()方法。</td>
+</tr>
+<tr>
+<td align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述表格便是Lock提供的方法，我们在平时的开发中大部分也只是使用到上述的方法，我们是来学习的，所以抱着学习的态度，了解其实现方式更有必要。通过看代码ReentrantLock的实现方式，我们发现有一个非常重要的内部类Sync实现了AbstractQueuedSynchronizer，其锁的实现逻辑都在抽象类中。</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h3 id="AbstractQueuedSynchronizer-AQS"><a href="#AbstractQueuedSynchronizer-AQS" class="headerlink" title="AbstractQueuedSynchronizer(AQS)"></a>AbstractQueuedSynchronizer(AQS)</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;队列同步器(AQS)内部采用一个int类型静态的内部静态变量来控制可以是否获取到锁，并采用FIFO队列的数据结构控制当前需要获取资源的线程。其内部的核心属性如下：</p>
+<h4 id="核心属性"><a href="#核心属性" class="headerlink" title="核心属性"></a>核心属性</h4><h5 id="AQS内部属性"><a href="#AQS内部属性" class="headerlink" title="AQS内部属性"></a>AQS内部属性</h5><table>
+<thead>
+<tr>
+<th align="center">属性名</th>
+<th align="left">属性描述</th>
+<th align="left">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Node head</td>
+<td align="left">队列的头部</td>
+<td align="left">位于队列头部的线程是正在占用资源的线程</td>
+</tr>
+<tr>
+<td align="center">Node tail</td>
+<td align="left">队列尾部</td>
+<td align="left">新加入的阻塞线程添加到队列的尾部</td>
+</tr>
+<tr>
+<td align="center">int state</td>
+<td align="left">当前AQS的内部状态</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="center">AQS只使用到了，head是队列头部，tail是队列的尾部,state表示AQS的状态。head和tail的Node类型的，Node类型是AQS的一个内部实现类，用于封装请求资源线程的状态、线程信息、线程的模式。下表是Node的相关属性和相关方法。</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h5 id="Node内部属性"><a href="#Node内部属性" class="headerlink" title="Node内部属性"></a>Node内部属性</h5><table>
+<thead>
+<tr>
+<th align="center">属性名</th>
+<th align="left">属性描述</th>
+<th align="left">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Node prev</td>
+<td align="left">该节点的前一个节点</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="center">Node next</td>
+<td align="left">该节点的下一个节点</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="center">int waitStatus</td>
+<td align="left">当前节点的状态</td>
+<td align="left">1:该节点处于取消的状态，比如该节点被中断； 0: 节点初始化的状态；-1: 该节点处于被唤醒的状态； -2: 该线程获得过资源,现处于等待状态； -3:</td>
+</tr>
+<tr>
+<td align="center">Thread thread</td>
+<td align="left">线程信息</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="center">Node nextWaiter</td>
+<td align="left">节点模式</td>
+<td align="left">若是独占模式，则该值为null；否则是共享模式, 该值为一个不可变的Node节点</td>
+</tr>
+</tbody></table>
+<h4 id="核心方法"><a href="#核心方法" class="headerlink" title="核心方法"></a>核心方法</h4><ul>
+<li>setState(int count)： 设置当前AQS的内部的变量值；</li>
+<li>getState(): 获取当前AQS内部变量的值；</li>
+<li>compareAndSetState(int expect, int update): 使用CAS操作将新的count值替换掉原来的count值。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;除了提供上述方法之外还提供了许多模版方法，我们在实现自身的锁功能时，大部分只需要使用AQS提供的模版方法即可，模版方法列表如下：</p>
+<h4 id="模版方法"><a href="#模版方法" class="headerlink" title="模版方法"></a>模版方法</h4><table>
+<thead>
+<tr>
+<th align="center">方法名</th>
+<th align="left">方法描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">acquire(int count)</td>
+<td align="left">线程以独占的模式获取资源，如果成功，则执行之后的代码块，否则一直等待</td>
+</tr>
+<tr>
+<td align="center">release(int count)</td>
+<td align="left">线程释放独占的资源，如果成功释放则返回true, 否则返回false</td>
+</tr>
+<tr>
+<td align="center">acquireShared(int count)</td>
+<td align="left">线程共享式的获取资源，如果成功则执行代码块，否则会一直等待有可用的资源</td>
+</tr>
+<tr>
+<td align="center">releaseShared(int count)</td>
+<td align="left">线程共享式的释放资源，如果释放成功返回的可获取的剩余资源</td>
+</tr>
+<tr>
+<td align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;模版方法常用于我们在实现自己定义的锁功能(实现Lock类中方法)会使用到，例如ReentrenLock中的lock()时，需要使用模版方法的acquire(int count)方法实现，之后介绍完需要的重写方法后会详细分析模版方法的代码实现。模版方法在实现用户自定义锁功能时，不需要用户重写上述方法，但是队列同步器却能实现客户个性化的锁机制，这依赖于AQS中需要重写的方法。需要重写的方法列表如下：</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h4 id="重写方法"><a href="#重写方法" class="headerlink" title="重写方法"></a>重写方法</h4><table>
+<thead>
+<tr>
+<th align="center">方法名</th>
+<th align="left">方法描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">tryAcquire(int count)</td>
+<td align="left">独享式的获取资源，如果成功获取则返回true，否则返回false</td>
+</tr>
+<tr>
+<td align="center">tryRelease(int count)</td>
+<td align="left">独享式的释放资源，如果成功释放则返回true，否则返回false</td>
+</tr>
+<tr>
+<td align="center">tryAcquireShared(int count)</td>
+<td align="left">共享式的获取资源， 如果返回成功则返回剩余的资源数</td>
+</tr>
+<tr>
+<td align="center">tryReleaseShared(int count)</td>
+<td align="left">共享式的释放资源， 如果释放成功则返回true否则返回false</td>
+</tr>
+<tr>
+<td align="center">isHeldExclusively()</td>
+<td align="left">当前线程是否是独占资源，即该线程是否是独占式的模式</td>
+</tr>
+<tr>
+<td align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述代码便是我们需要在实现自定义锁功能时需要重写AQS的方法，但并发不需要每个方法都要重写，如果我们需要独占式的获得锁和释放锁，那么只需要重写tryAcquire(int count)和tryReleased(int count)方法，如果需要共享式的获取锁资源，则重写其中的tryAcquireShared(int count)和tryReleaseShared(int count)方法，根据自己实现的锁功能来重写上述的方法。</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;了解了锁和AQS的基础概念和使用方法，我们本着学习的态度，当然要了解其内部实现的原理。那么，我们就以常用的ReentrenLock作为学习入口，了解其内部的工作机制，如果有机会我们再写一个我们自定义的锁功能。</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h3 id="ReentrenLock"><a href="#ReentrenLock" class="headerlink" title="ReentrenLock"></a>ReentrenLock</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ReentrenLock是一个独占式的可重入锁。独占式即只允许有一个线程获得资源执行后续的代码块，其他的线程必须等待该线程结束释放锁后才能获取到资源。可重入指的是拥有相同线程ID的线程在该抢占线程占用资源时，  不会阻塞。</p>
+<h4 id="lock"><a href="#lock" class="headerlink" title="lock()"></a>lock()</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">final void lock() &#123;</span><br><span class="line">    &#x2F;&#x2F;调用模版方法acquire(int arg)</span><br><span class="line">    acquire(1);</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">public final void acquire(int arg) &#123;</span><br><span class="line">    &#x2F;**</span><br><span class="line">    * 调用重写的tryAcquire(int arg)方法，判断是否获取到资源</span><br><span class="line">    * 若未抢占到资源，则创建新的节点(独占模式)添加到尾部</span><br><span class="line">    * 自旋式的获取资源，若未获取到则设置状态并阻塞线程</span><br><span class="line">    * &#x2F;</span><br><span class="line">    if (!tryAcquire(arg) &amp;&amp;</span><br><span class="line">        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))</span><br><span class="line">        selfInterrupt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上边的代码便是独占锁的调用方法，acquire(int arg)是AQS提供的模版方法。tryAcquire(arg)是需要用户自定义的重写方法，用于判断是否获取到资源，如果未获取到资源则调用addWaiter(Node model)方法将线程信息进行封装加入到AQS队列的尾部, 然后通过acquireQueued(Node p)判断当前的线程信息是否位于队列头部所指向的节点，若不是队列头部所指向的节点则表示未抢占到资源，则设置该节点的状态并阻塞线程。tryAcquire(int arg)方法源码：</p>
+<figure class="highlight plain"><figcaption><span>arg)</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">protected final boolean tryAcquire(int acquires) &#123;</span><br><span class="line">    &#x2F;&#x2F;获取当前线程的信息</span><br><span class="line">    final Thread current &#x3D; Thread.currentThread();</span><br><span class="line">    &#x2F;&#x2F;获取AQS的的当前状态(即AQS内存的静态变量值)</span><br><span class="line">    int c &#x3D; getState();</span><br><span class="line">    &#x2F;&#x2F;如果c&#x3D;&#x3D;0,表明没有线程获取到资源，进入下述的判断</span><br><span class="line">    if (c &#x3D;&#x3D; 0) &#123;</span><br><span class="line">        &#x2F;&#x2F;判断当前的线程是否是队列的头部，如果是则CAS操作替换AQS的内部状态，操作成功之后则持有锁线程的变为当前线程并返回true</span><br><span class="line">        if (!hasQueuedPredecessors() &amp;&amp;</span><br><span class="line">            compareAndSetState(0, acquires)) &#123;</span><br><span class="line">            setExclusiveOwnerThread(current);</span><br><span class="line">            return true;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;如果持有锁的线程是当前线程，将内部变量添加请求的变量然后设置到AQS的内部静态变量</span><br><span class="line">    else if (current &#x3D;&#x3D; getExclusiveOwnerThread()) &#123;</span><br><span class="line">        int nextc &#x3D; c + acquires;</span><br><span class="line">        if (nextc &lt; 0)</span><br><span class="line">            throw new Error(&quot;Maximum lock count exceeded&quot;);</span><br><span class="line">        setState(nextc);</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    return false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述方法是可重入锁公平的获取资源重写的方法，所谓的公平锁指的是先到先得的原则(即先请求获取锁的线程在有空闲资源的时候先获得锁),在上述的代码体现就是hasQueuedPredecessors()[判断当前线程是不是队列的头部next所指的线程]。若是需要非公平的获取锁，则去掉hasQueuedPredecessors()方法即可。上述方法如果返回false，表示未获取到资源，则需要调用addWaiter(Node.EXCLUSIVE)方法，源码如下：</p>
+<figure class="highlight plain"><figcaption><span>mode)</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">private Node addWaiter(Node mode) &#123;</span><br><span class="line">    &#x2F;&#x2F;创建新的节点信息</span><br><span class="line">    Node node &#x3D; new Node(Thread.currentThread(), mode);</span><br><span class="line">    &#x2F;&#x2F;获取当前AQS内部队列的队尾</span><br><span class="line">    Node pred &#x3D; tail;</span><br><span class="line">    &#x2F;&#x2F;如果队尾不为空，则表示有线程在使用或者在等待资源</span><br><span class="line">    if (pred !&#x3D; null) &#123;</span><br><span class="line">        &#x2F;&#x2F;将当前新增的节点的前一个节点指向当前AQS的队尾</span><br><span class="line">        node.prev &#x3D; pred;</span><br><span class="line">        &#x2F;&#x2F;使用原子性操作将当前节点设置到AQS的队尾</span><br><span class="line">        if (compareAndSetTail(pred, node)) &#123;</span><br><span class="line">            &#x2F;&#x2F;将之前尾节点的下一个节点指向当前节点</span><br><span class="line">            pred.next &#x3D; node;</span><br><span class="line">            return node;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;对于空队列的或者在使用compareAndSetTail(pre, node)失败时，则调用enq继续处理该节点。</span><br><span class="line">    enq(node);</span><br><span class="line">    return node;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;自旋式添加节点到队列尾部</span><br><span class="line">private Node enq(final Node node) &#123;</span><br><span class="line">    for (;;) &#123;</span><br><span class="line">        Node t &#x3D; tail;</span><br><span class="line">        &#x2F;&#x2F;如果为空，则设置一个新节点作为队列头部</span><br><span class="line">        if (t &#x3D;&#x3D; null) &#123; &#x2F;&#x2F; Must initialize</span><br><span class="line">            if (compareAndSetHead(new Node()))</span><br><span class="line">                tail &#x3D; head;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            &#x2F;&#x2F;和addWaiter方法处理相似，设置该节点到队尾，然后将之前的队列尾部节点的下一个节点指向该节点。</span><br><span class="line">            node.prev &#x3D; t;</span><br><span class="line">            if (compareAndSetTail(t, node)) &#123;</span><br><span class="line">                t.next &#x3D; node;</span><br><span class="line">                return t;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述方法是将未获取到资源的线程包装成一个AQS内部的节点添加到队列尾部，添加到队列尾部成功之后，则会调用acquireQueued(Node p, int arg)方法设置节点的状态和是否阻塞线程。源码如下：</p>
+<figure class="highlight plain"><figcaption><span>node, int arg)：</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">final boolean acquireQueued(final Node node, int arg) &#123;</span><br><span class="line">    boolean failed &#x3D; true;</span><br><span class="line">    try &#123;</span><br><span class="line">        boolean interrupted &#x3D; false;</span><br><span class="line">        for (;;) &#123;</span><br><span class="line">            &#x2F;&#x2F;获取当前节点的前一个节点</span><br><span class="line">            final Node p &#x3D; node.predecessor();</span><br><span class="line">            &#x2F;&#x2F;如果当前节点的前一个节点是队列头部，则尝试获取资源，获取成功则将当前节点设置到队列头部。</span><br><span class="line">            if (p &#x3D;&#x3D; head &amp;&amp; tryAcquire(arg)) &#123;</span><br><span class="line">                setHead(node);</span><br><span class="line">                p.next &#x3D; null; &#x2F;&#x2F; help GC</span><br><span class="line">                failed &#x3D; false;</span><br><span class="line">                return interrupted;</span><br><span class="line">            &#125;</span><br><span class="line">            &#x2F;&#x2F;如果不满足上述条件，则进行请求失败阻塞流程的处理并且检查该线程是否被中断</span><br><span class="line">            if (shouldParkAfterFailedAcquire(p, node) &amp;&amp;</span><br><span class="line">                parkAndCheckInterrupt())</span><br><span class="line">                interrupted &#x3D; true;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        &#x2F;&#x2F;这种情况我理解的是针对于上述的操作如果出现了异常，则执行该方法</span><br><span class="line">        if (failed)</span><br><span class="line">            cancelAcquire(node);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><figcaption><span>pred, Node node)</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) &#123;</span><br><span class="line">    &#x2F;&#x2F;获取新增节点的前一个节点的状态</span><br><span class="line">    int ws &#x3D; pred.waitStatus;</span><br><span class="line">    &#x2F;&#x2F;如果前节点的状态处于可唤醒，则返回true</span><br><span class="line">    if (ws &#x3D;&#x3D; Node.SIGNAL)</span><br><span class="line">        return true;</span><br><span class="line">    &#x2F;&#x2F;如果大于0，表示该线程已经取消了抢占资源，所以将新增节点的前一个节点的指针指向状态不为取消的节点。</span><br><span class="line">    if (ws &gt; 0) &#123;</span><br><span class="line">        do &#123;</span><br><span class="line">            node.prev &#x3D; pred &#x3D; pred.prev;</span><br><span class="line">        &#125; while (pred.waitStatus &gt; 0);</span><br><span class="line">        pred.next &#x3D; node;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        &#x2F;&#x2F;设置前节点的状态为可唤醒的状态</span><br><span class="line">        compareAndSetWaitStatus(pred, ws, Node.SIGNAL);</span><br><span class="line">    &#125;</span><br><span class="line">    return false;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;阻塞当前线程并且减产该线程是否被中断</span><br><span class="line">private final boolean parkAndCheckInterrupt() &#123;</span><br><span class="line">    &#x2F;&#x2F;使用LockSupport.park(this)工具阻塞当前线程，该方法可以不在线程锁内执行</span><br><span class="line">    LockSupport.park(this);</span><br><span class="line">    return Thread.interrupted();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述的方法便是加锁的完整代码，虽然看起来比较长并且感觉做了很多的东西，但是只要一步步去看源码，你会发现也很简单，我做了一个总结：</p>
+<ol>
+<li>判断当前线程是否抢占到了资源，若没有抢占到，则执行操作2。</li>
+<li>将当前的线程信息封装成一个AQS内部节点添加到队列的尾部，此时会出现三种情况：<ul>
+<li>AQS内部的队列已初始化，调用compareAndSetTail设置新增节点到队尾。</li>
+<li>compareAndSetTail设置队尾失败，则调用enq方法继续在内部代码块中采用自选式操作将新增节点设置到队尾</li>
+<li>AQS内部的队列还未初始化过，则新创建一个新的节点作为队列头部，然后设置之前的新增节点到队尾。<br>如果上述操作任一执行成功，则执行步骤3。</li>
+</ul>
+</li>
+<li>对新加入到队列中的节点进行处理，包括判断在添加到队尾的期间是否有线程释放了资源，新增的节点则再次尝试获取资源，若获取到资源则返回false,否则执行步骤4。</li>
+<li>判断新增节点node的前节点prev的状态，并执行如下操作：<ul>
+<li>前节点prev的状态是可唤醒的，直接返回true，继续执行后续操作。</li>
+<li>前节点prev的状态是已取消，则将新增节点node的前节点指向状态不是取消的节点，并且返回false。重新进入判断是否可以尝试获取到资源。</li>
+<li>前节点的prev的状态是初始化状态或者等待状态，则将前节点prev的状态设置为可唤醒的状态。<br>若上述操作的结果最终返回true，会继续执行步骤5。</li>
+</ul>
+</li>
+<li>判断线程是否被中断，并且阻塞当前线程，防止一直执行循环，从而造成CPU的消耗。</li>
+<li>若上述代码出现了异常情况，则会执行finally代码，取消新增节点的，即将新增节点的状态设置为已取消。</li>
+</ol>
+<h4 id="unlock"><a href="#unlock" class="headerlink" title="unlock()"></a>unlock()</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;释放锁</span><br><span class="line">public void unlock() &#123;</span><br><span class="line">    sync.release(1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;AQS释放资源</span><br><span class="line">public final boolean release(int arg) &#123;</span><br><span class="line">    &#x2F;&#x2F;调用释放资源的重写方法，如果成功则唤醒后续等待的线程</span><br><span class="line">    if (tryRelease(arg)) &#123;</span><br><span class="line">        Node h &#x3D; head;</span><br><span class="line">        if (h !&#x3D; null &amp;&amp; h.waitStatus !&#x3D; 0)</span><br><span class="line">            unparkSuccessor(h);</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    return false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>释放锁的代码只是在内部调用了AQS模版方法的release(int arg)方法，而release(int arg)是AQS内部实现，一般不需要我们进行重写，其内部代码的实现首先会调用重写的tryRelease(int arg)， 判断是否释放资源成功，若成功则需要调用后续的unparkSuccessOr(h)唤醒后续等待的线程。<br>tryRelase(int arg)方法实现如下：</p>
+<figure class="highlight plain"><figcaption><span>releases)</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">protected final boolean tryRelease(int releases) &#123;</span><br><span class="line">    &#x2F;&#x2F;获取当前的状态减去请求释放的资源数</span><br><span class="line">    int c &#x3D; getState() - releases;</span><br><span class="line">    &#x2F;&#x2F;如果当前线程不是AQS内部正在使用资源的那个线程时，抛出异常</span><br><span class="line">    if (Thread.currentThread() !&#x3D; getExclusiveOwnerThread())</span><br><span class="line">        throw new IllegalMonitorStateException();</span><br><span class="line">    boolean free &#x3D; false;</span><br><span class="line">    &#x2F;&#x2F;如果AQS内部静态变量为0，表示没有线程正在占用该线程返回true，并且将当前AQS内部正在使用资源的那个线程设置为null.</span><br><span class="line">    if (c &#x3D;&#x3D; 0) &#123;</span><br><span class="line">        free &#x3D; true;</span><br><span class="line">        setExclusiveOwnerThread(null);</span><br><span class="line">    &#125;</span><br><span class="line">    setState(c);</span><br><span class="line">    return free;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>tryRelease(int releases)方法的内部实现比较简单，如果当前线程是AQS内部正在实现资源的线程，则将AQS内部的剩余资源数减去请求释放的资源数，如果剩余资源数为0，表示当前线程没有占用资源，则将正在使用资源的线程变量设置为null,并且将变量值设置到AQS内部，返回true。否则抛出异常或者返回false。 tryRelease(int releases)返回true时，表示当前线程不再占用该线程，需要判断AQS队列内部是否有后续节点，若有后续节点，则调用unparkSuccessor(h)唤醒候选线程。unparkSuccessor(h)的源码实现如下：</p>
+<figure class="highlight plain"><figcaption><span>h)</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">private void unparkSuccessor(Node node) &#123;</span><br><span class="line">    int ws &#x3D; node.waitStatus;</span><br><span class="line">    if (ws &lt; 0)</span><br><span class="line">        compareAndSetWaitStatus(node, ws, 0);</span><br><span class="line">    Node s &#x3D; node.next;</span><br><span class="line">    if (s &#x3D;&#x3D; null || s.waitStatus &gt; 0) &#123;</span><br><span class="line">        s &#x3D; null;</span><br><span class="line">        for (Node t &#x3D; tail; t !&#x3D; null &amp;&amp; t !&#x3D; node; t &#x3D; t.prev)</span><br><span class="line">            if (t.waitStatus &lt;&#x3D; 0)</span><br><span class="line">                s &#x3D; t;</span><br><span class="line">    &#125;</span><br><span class="line">    if (s !&#x3D; null)</span><br><span class="line">        LockSupport.unpark(s.thread);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>判断AQS内部队列头部节点的状态是否为可唤醒(-1)，若为可唤醒则设置头部节点状态为0。继续判断头部节点的下节点，如果后续节点为null或者状态为已取消，则从后向前判断队列上节点状态小于0且最节点头部节点的节点s，判断节点s是否为null，若不为null则唤醒后续线程。这段代码比较疑惑的是为什么要从后向前判断状态，不能从前向后判断第一个小于0的节点直接break掉吗？</p>
+<p>上述代码是释放锁的代码，相对于获取锁的代码来说简单很多，也比较易懂，其中的操作实现如下：</p>
+<ol>
+<li>首先调用AQS内部的的模版方法release(int arg), release方法会调用tryRelease(int release)修改资源变量，若成功则执行步骤2。</li>
+<li>判断AQS内部队列是否有后续节点，若有后续节点则调用unparkSuccessor(h)方法唤醒后续节点，执行步骤3；若没有后续节点则直接返回true。</li>
+<li>首先将队列头部节点状态设置为0，其次判断头部节点的后续节点的状态，找到状态为可唤醒的节点，若不为null，则调用LockSupport.unpark(Object o)方法唤醒后续线程.</li>
+<li>返回false。</li>
+</ol>
+<p><strong>小结:</strong> 该小节便是ReentrenLock使用AQS实现的一个可重入的独占锁，使用的AQS相对简单。如果大家想要继续深入学习，可以看看CountDownLatch的代码实现，其内部也是采用了AQS实现，具体的实现就不做介绍了，相信只要好好的看了改节的都能够理解和分析CountDownLatch的源码。</p>
+<p>ReentrenLock只是用到了acquire(int arg)和release(int arg)方法，并未使用到我们之前所述的acquireShared(int arg)、releaseShared(int arg), acquiredInterruplty(int arg)等方法，这些模版方法和acquired(int arg)和release(int arg)很相似，只是针对其中做了特殊的处理，就不多做解析。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>Synchornized和Lock是Java实现同步机制的两个重要途径，Synchornized隐式的获取锁和释放锁，不需要程序员做其它操作就可以实现同步机制，但是相应的对于某些复杂场景难以实现。Lock<br>需要显示的获取锁和释放锁，如果操作不当可能会造成死锁的现象，但也支持复杂的场景，例如读写锁可以针对写加排它锁，读加共享锁，对读多写少的情况非常的好。因此，我觉得在一般情况下，都需要掌握并且首先考虑使用Lock,而不是Synchronized，当然具体的场景具体实现。<br>最后，写一些自己的写这篇文章的一些后感吧。自己在写的时候总想写很多，但有时不知道该怎么去描述，最后写出来可能废话一大堆，没有什么实用的东西，但是自己还是希望自己能够写完、毕竟总是会慢慢进步的，如果不做就永远不会进步。相信自己以后能够更好地写更多的文章，加油吧！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/08/%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/" rel="next" title="问题汇总">
+                <i class="fa fa-chevron-left"></i> 问题汇总
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" rel="prev" title="线程池使用与实现原理">
+                线程池使用与实现原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/author.jpg"
+                alt="Marchen" />
+            
+              <p class="site-author-name" itemprop="name">Marchen</p>
+              <p class="site-description motion-element" itemprop="description">原来我很快乐，只是不愿承认</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Synchronized"><span class="nav-text">Synchronized</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#偏向锁"><span class="nav-text">偏向锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#轻量级锁"><span class="nav-text">轻量级锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重量锁"><span class="nav-text">重量锁</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锁-Lock"><span class="nav-text">锁(Lock)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Lock的优势"><span class="nav-text">Lock的优势</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Lock的方法模版"><span class="nav-text">Lock的方法模版</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AbstractQueuedSynchronizer-AQS"><span class="nav-text">AbstractQueuedSynchronizer(AQS)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#核心属性"><span class="nav-text">核心属性</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#AQS内部属性"><span class="nav-text">AQS内部属性</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Node内部属性"><span class="nav-text">Node内部属性</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心方法"><span class="nav-text">核心方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#模版方法"><span class="nav-text">模版方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重写方法"><span class="nav-text">重写方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrenLock"><span class="nav-text">ReentrenLock</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#lock"><span class="nav-text">lock()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#unlock"><span class="nav-text">unlock()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Marchen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.4"></script>
+  <script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.4"></script>
+
+
+  
+
+</body>
+</html>
+<script type="text/javascript" src="/js/src/love.js"></script>

@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Java,并发编程," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="并发编程 优势 1.多处理器，充分利用系统资源 2.建模的简单性 3.异步处理，能够灵敏响应 问题 1.竟态性条件：多处理器操作在某个时间段，操作同一个地址，造成数据结果不正确 2.活跃性问题：多线程同步快之间发生相互调用，造成死锁，从而导致后续代码不执行，系统崩溃 3.性能问题：如果线程数量过大，并且线程切换比较频繁，则会造成CPU的使用消耗在上线文切换等操作，造成性能问题 ##安全性问题解决">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发编程总结">
+<meta property="og:url" content="https://marchen-y.github.io/2019/04/26/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Marchen的博客">
+<meta property="og:description" content="并发编程 优势 1.多处理器，充分利用系统资源 2.建模的简单性 3.异步处理，能够灵敏响应 问题 1.竟态性条件：多处理器操作在某个时间段，操作同一个地址，造成数据结果不正确 2.活跃性问题：多线程同步快之间发生相互调用，造成死锁，从而导致后续代码不执行，系统崩溃 3.性能问题：如果线程数量过大，并且线程切换比较频繁，则会造成CPU的使用消耗在上线文切换等操作，造成性能问题 ##安全性问题解决">
+<meta property="article:published_time" content="2019-04-26T12:41:21.000Z">
+<meta property="article:modified_time" content="2019-04-26T12:43:17.245Z">
+<meta property="article:author" content="Marchen">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"always","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://marchen-y.github.io/2019/04/26/并发编程总结/"/>
+
+
+
+
+
+  <title>并发编程总结 | Marchen的博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Marchen的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">分享一切喜欢的事物</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-schedule">
+          <a href="/schedule/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            日程表
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://marchen-y.github.io/2019/04/26/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Marchen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Marchen的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">并发编程总结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-26T20:41:21+08:00">
+                2019-04-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="p-aligncenter并发编程p"><p align="center">并发编程</p></h2>
+<h3 id="优势">优势</h3>
+<p>1.多处理器，充分利用系统资源<br>
+2.建模的简单性<br>
+3.异步处理，能够灵敏响应</p>
+<h3 id="问题">问题</h3>
+<p>1.竟态性条件：多处理器操作在某个时间段，操作同一个地址，造成数据结果不正确<br>
+2.活跃性问题：多线程同步快之间发生相互调用，造成死锁，从而导致后续代码不执行，系统崩溃<br>
+3.性能问题：如果线程数量过大，并且线程切换比较频繁，则会造成CPU的使用消耗在上线文切换等操作，造成性能问题<br>
+##安全性问题解决<br>
+1.保证一个对象是无状态的：即保证一个类中的类变量和实例变量是无状态的。<br>
+2.操作是原子操作：对于基本的类型的，JAVA提供了原子变量类来实现基本类型的原子操作，其余的复合操作可以使用锁或者同步块，保证原子操作。<br>
+3.锁：锁是保证原子操作的一个重要的实现机制。</p>
+<ul>
+<li>Lock接口
+<blockquote>
+<ul>
+<li>void lock():获取锁，调用该方法当前线程会获取锁</li>
+<li>void lockInterruptibly(): 可中断的获取锁，在锁的获取中可以中断当前线程</li>
+<li>boolean tryLock(): 尝试非阻塞的获取锁，调用该方法后立刻返回，如果能获取到则返回true，否则返回false</li>
+<li>boolean tryLock(long time, TimeUnit unit):查实的获取锁</li>
+<li>void unlock(): 释放锁</li>
+<li>Condition newCondition():获取等待通知的组件，该组件和当前的锁绑定，当前线程获取锁然后调用组件的wait()方法，调用后释放锁。<br>
+<strong><font color="red">注意：Lock的主要实现依赖于AbstractQueueSynchronizer，一般在Lock的内部创建静态的队列同步器类</font></strong></li>
+</ul>
+</blockquote>
+</li>
+<li>队列同步器
+<blockquote>
+<ul>
+<li>getState(): 获取当同步器的状态</li>
+<li>setState(): 设置当前同步器的状态</li>
+<li>compareAndSetState(): 对比同步器的状态并设置新的状态，这个是原子操作</li>
+</ul>
+</blockquote>
+</li>
+<li>重入锁
+<blockquote>
+<ul>
+<li>同步块和ReenTryLock都隐式的使用了重入锁，即当前拥有锁的线程和想要获取锁的线程是同一个线程，则同步器的状态想要的增加，释放时也要多次释放。</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<ul>
+<li>读写锁
+<blockquote>
+<ul>
+<li>概述： 读写锁满足同一时刻允许多个线程进行读取，但是在写线程访问时，所有的读线程和写线程均阻塞。</li>
+<li>特性：<br>
+a.  公平性选择<br>
+b. 支持重进入<br>
+c. 支持锁降级</li>
+<li>ReentrantReadWriteLock的接口和示例：<br>
+a. readLock: 获取读锁<br>
+b. wirteLock: 获取写锁<br>
+c. int getReadLockCount(): 返回当前读锁被获取的次数<br>
+d. int getReadHoldCount(): 返回当前线程获取读锁的次数<br>
+e. boolean isWriteLocked(): 判断写锁是否被获取<br>
+f. int getWrieteHoldCount()：返回当前写锁被获取的次数。</li>
+<li>读写锁的实现：也采用的是队列同步器的实现，需要通过个整型变量来维护多个读线程和一个写线程的状态，采用的是高16位代表读，低16位代表写。</li>
+</ul>
+</blockquote>
+</li>
+<li>LockSupport工具：
+<blockquote>
+<ul>
+<li>概述：LockSupport工具提供了基本的线程阻塞和线程唤醒功能。<br>
+a. void park(): 阻塞当前线程，直到调用unPark(Thread thread)方法或者当前线程被中断才返回。<br>
+b. void parkNanos(long nanos): 阻塞当前线程最长不超过nanos纳秒。<br>
+c. void parkUntil(long deadline): 阻塞当前线程<br>
+d. void unPark(Thread thread): 唤醒处于阻塞状态的线程。</li>
+</ul>
+</blockquote>
+</li>
+<li>Condition接口
+<blockquote>
+<ul>
+<li>概述：Condition接口也提供了类似Object的监视器方法，与Lock配合可以实现等待/通知模式(Condition condition =Lock.newCondition();<br>
+<strong><font color="red"> 注意：Condition接口具有多个队列，并且可以进入等待队列的线程可以不响应中断。</font></strong><br>
+a. void await(): 当前线程进入等待状态直到被中断或被通知。<br>
+b.void  awaitUninterruptibly(): 当前线程进入等待状态直到被通知。<br>
+c. long awaitNanos(long nanos): 当前线程进入等待状态直到被通知、中断和超时。<br>
+d. boolean awaitUtil(Date dealine): 当前线程进入等待状态直到被中断、通知和直到某个时间。<br>
+e. void singal(): 唤醒condition队列等待的状态。<br>
+f. void singalAll(): 唤醒Condition队列上所有等待的状态。</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/12/Spring%E5%AE%B9%E5%99%A8%E7%9A%84%E5%AE%9E%E7%8E%B0/" rel="next" title="Spring容器的实现">
+                <i class="fa fa-chevron-left"></i> Spring容器的实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/" rel="prev" title="集合详解-HashMap">
+                集合详解-HashMap <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/author.jpg"
+                alt="Marchen" />
+            
+              <p class="site-author-name" itemprop="name">Marchen</p>
+              <p class="site-description motion-element" itemprop="description">原来我很快乐，只是不愿承认</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#p-aligncenter并发编程p"><span class="nav-text">并发编程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优势"><span class="nav-text">优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#问题"><span class="nav-text">问题</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Marchen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.4"></script>
+  <script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.4"></script>
+
+
+  
+
+</body>
+</html>
+<script type="text/javascript" src="/js/src/love.js"></script>

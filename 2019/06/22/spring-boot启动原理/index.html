@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Spring Boot,源码," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Spring Boot是现在实现微服务最基础，最受欢迎的一个Spring开发框架，其本身拥有Spring的全部功能，并且提供了很多特性和功能来简化开发人员的开发，深受喜欢，我也是其忠实粉丝之一。 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果你问我你为什么会喜欢使用这个框架，我不会告诉你它有如下的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring Boot之Environment">
+<meta property="og:url" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="Marchen的博客">
+<meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Spring Boot是现在实现微服务最基础，最受欢迎的一个Spring开发框架，其本身拥有Spring的全部功能，并且提供了很多特性和功能来简化开发人员的开发，深受喜欢，我也是其忠实粉丝之一。 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果你问我你为什么会喜欢使用这个框架，我不会告诉你它有如下的">
+<meta property="og:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="og:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/StandardServletEnvironment.png">
+<meta property="article:published_time" content="2019-06-22T07:05:11.000Z">
+<meta property="article:modified_time" content="2019-07-21T11:14:43.320Z">
+<meta property="article:author" content="Marchen">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"always","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://marchen-y.github.io/2019/06/22/spring-boot启动原理/"/>
+
+
+
+
+
+  <title>spring Boot之Environment | Marchen的博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Marchen的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">分享一切喜欢的事物</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-schedule">
+          <a href="/schedule/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            日程表
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Marchen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Marchen的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spring Boot之Environment</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-22T15:05:11+08:00">
+                2019-06-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Spring Boot是现在实现微服务最基础，最受欢迎的一个Spring开发框架，其本身拥有Spring的全部功能，并且提供了很多特性和功能来简化开发人员的开发，深受喜欢，我也是其忠实粉丝之一。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;如果你问我你为什么会喜欢使用这个框架，我不会告诉你它有如下的优势，我会喜欢看着你写着一大堆的XML配置，哈哈哈……。</p>
+<h3 id="Spring-Boot优势"><a href="#Spring-Boot优势" class="headerlink" title="Spring Boot优势"></a>Spring Boot优势</h3><ul>
+<li>大量的自动配置，开发人员不需要配置一大堆的XML模版文件，简化开发。</li>
+<li>内嵌的Servlet服务器，不需要部署Web应用时还需要部署Tomcat、Jetty等应用服务器才能使用。</li>
+<li>提供了大量的启动依赖，开发人员不需要考虑版本冲突，依赖相关问题。</li>
+<li>提供了Spring actuator等组件，便于监控和管理应用信息。</li>
+<li>其本身可以和Spring Cloud等框架完美结合，不需要过多的配置等。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在了解了Spring Boot框架各种优势之后，自己也使用了很长一段时间的Spring Boot框架，但是有时会报一些奇奇怪怪的问题，自己又不知道从何下手，所以下定决心要认真好好学习学习Spring Boot框架，了解其内部的实现机制，掌握原理和发现它代码写的好的地方，希望能够在开发的道路走远一点。</p>
+<h3 id="Spring-Boot启动流程"><a href="#Spring-Boot启动流程" class="headerlink" title="Spring Boot启动流程"></a>Spring Boot启动流程</h3><p><img src="spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Spring Boot启动流程图"><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述便是ApplicationContext的启动大体流程，大体流程看起来相对比较简单，但其实内部做了很多操作，接下来我们就按照上述流程一一分析Spring Boot的启动流程都做了什么，其中还包括了Spring的相关知识和源码。</p>
+<h4 id="SpringApplication-run-Class-clzz，args"><a href="#SpringApplication-run-Class-clzz，args" class="headerlink" title="SpringApplication.run(Class clzz，args)"></a>SpringApplication.run(Class clzz，args)</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication</span><br><span class="line">public class ArcherApplication &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        System.setProperty(&quot;es.set.netty.runtime.available.processors&quot;, &quot;false&quot;);</span><br><span class="line">        SpringApplication.run(ArcherApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述方法便是我们使用Spring Boot时的启动方法，@SpringBootApplication注解是Spring Boot框架中最为重要的一个注解，它融合了许多注解的功能，具体的源码如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">@Target(ElementType.TYPE)</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">@Documented</span><br><span class="line">@Inherited</span><br><span class="line">@SpringBootConfiguration</span><br><span class="line">@EnableAutoConfiguration</span><br><span class="line">@ComponentScan(excludeFilters &#x3D; &#123;</span><br><span class="line">    @Filter(type &#x3D; FilterType.CUSTOM, classes &#x3D; TypeExcludeFilter.class),</span><br><span class="line">    @Filter(type &#x3D; FilterType.CUSTOM,</span><br><span class="line">        classes &#x3D; AutoConfigurationExcludeFilter.class) &#125;)</span><br><span class="line">public @interface SpringBootApplication &#123;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;表示该注解相当于EnableAutoConfiguration的exclude属性</span><br><span class="line">    @AliasFor(annotation &#x3D; EnableAutoConfiguration.class)</span><br><span class="line">    Class&lt;?&gt;[] exclude() default &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;表示该注解相当于EnableAutoConfiguration的excludeName属性</span><br><span class="line">    @AliasFor(annotation &#x3D; EnableAutoConfiguration.class)</span><br><span class="line">    String[] excludeName() default &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;表示该注解相当于ComponentScan的basePackages属性</span><br><span class="line">    @AliasFor(annotation &#x3D; ComponentScan.class, attribute &#x3D; &quot;basePackages&quot;)</span><br><span class="line">    String[] scanBasePackages() default &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;表示该注解相当于ComponentScan的basePackageClasses属性</span><br><span class="line">    @AliasFor(annotation &#x3D; ComponentScan.class, attribute &#x3D; &quot;basePackageClasses&quot;)</span><br><span class="line">    Class&lt;?&gt;[] scanBasePackageClasses() default &#123;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述代码可以看出SpringBootApplication融合@SpringBootConfiguration,@EnableAutoConfiguration,@ComponentScan的注解功能，因此SpringBootApplication注解所包含的功能如下：</p>
+<ul>
+<li>@SpringBootConfiguration拥有@Configuration注解，因此可以用于配置类，被该注解修饰的类可以被AnnotationConfigApplicationContext等ApplicationContext类进行扫描并注入到BeanFactory中。</li>
+<li>@EnableAutoConfiguration注解中有两个非常重要的注解@Import(AutoConfigurationImportSelector.class)和@Import(AutoConfigurationPackages.Registrar.class)注解，AutoConfigurationImportSelector可以实现扫描spring.factories中的XXXXAutoConfiguration类到BeanFactory中，AutoConfigurationPackages.Registrar可以实现将ImportRegistar接口的类注入到BeanFactory中。</li>
+<li>ComponentScan注解可以扫描指定的路径中被声明的类到BeanFactory中。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;了解了SpringBootApplication注解，我们继续看Spring Boot的启动入口SpringApplication.run()方法，ApplicationContext实例化，自动配置类的注入都是在该方法中实现，源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public static ConfigurableApplicationContext run(Class&lt;?&gt; primarySource,</span><br><span class="line">        String... args) &#123;</span><br><span class="line">    return run(new Class&lt;?&gt;[] &#123; primarySource &#125;, args);</span><br><span class="line">&#125;</span><br><span class="line">public static ConfigurableApplicationContext run(Class&lt;?&gt;[] primarySources,</span><br><span class="line">        String[] args) &#123;</span><br><span class="line">    return new SpringApplication(primarySources).run(args);</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F;实例化SpringApplication。负责给SpringApplication的primarySources、webApplicationType、初始化ApplicationContextInitializer，初始化监听器等。</span><br><span class="line">public SpringApplication(ResourceLoader resourceLoader, Class&lt;?&gt;... primarySources) &#123;</span><br><span class="line">    this.resourceLoader &#x3D; resourceLoader;</span><br><span class="line">    Assert.notNull(primarySources, &quot;PrimarySources must not be null&quot;);</span><br><span class="line">    this.primarySources &#x3D; new LinkedHashSet&lt;&gt;(Arrays.asList(primarySources));</span><br><span class="line">    this.webApplicationType &#x3D; WebApplicationType.deduceFromClasspath();</span><br><span class="line">    setInitializers((Collection) getSpringFactoriesInstances(</span><br><span class="line">            ApplicationContextInitializer.class));</span><br><span class="line">    setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));</span><br><span class="line">    this.mainApplicationClass &#x3D; deduceMainApplicationClass();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpringApplication提供了静态的run方法调用，run方法内部实例化SpringApplication对象，实例化SpringApplication构造函数主要做了设置Spring Boot当前的应用类型，实例化ApplicationContextInitializer，实例化ApplicationListener，这个几个SpringApplication在之后的方法中非常的重要，我们在介绍后续的方法之前，先了解下这个属性都有什么内容。首先是webApplicationType属性：</p>
+<h5 id="webApplicationType"><a href="#webApplicationType" class="headerlink" title="webApplicationType"></a>webApplicationType</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;静态常量，标识是否是</span><br><span class="line">private static final String[] SERVLET_INDICATOR_CLASSES &#x3D; &#123; &quot;javax.servlet.Servlet&quot;,</span><br><span class="line">        &quot;org.springframework.web.context.ConfigurableWebApplicationContext&quot; &#125;;</span><br><span class="line"></span><br><span class="line">private static final String WEBMVC_INDICATOR_CLASS &#x3D; &quot;org.springframework.&quot;</span><br><span class="line">        + &quot;web.servlet.DispatcherServlet&quot;;</span><br><span class="line"></span><br><span class="line">private static final String WEBFLUX_INDICATOR_CLASS &#x3D; &quot;org.&quot;</span><br><span class="line">        + &quot;springframework.web.reactive.DispatcherHandler&quot;;</span><br><span class="line">private static final String JERSEY_INDICATOR_CLASS &#x3D; &quot;org.glassfish.jersey.servlet.ServletContainer&quot;;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;获取工程的应用类型</span><br><span class="line">static WebApplicationType deduceFromClasspath() &#123;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;如果类中存在如下的类名，则表示是交互web应用类型</span><br><span class="line">    if (ClassUtils.isPresent(WEBFLUX_INDICATOR_CLASS, null)</span><br><span class="line">            &amp;&amp; !ClassUtils.isPresent(WEBMVC_INDICATOR_CLASS, null)</span><br><span class="line">            &amp;&amp; !ClassUtils.isPresent(JERSEY_INDICATOR_CLASS, null)) &#123;</span><br><span class="line">        return WebApplicationType.REACTIVE;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;如果不包含拥有ConfigurationWebApplicationContext类，则表示不是web应用类型</span><br><span class="line">    for (String className : SERVLET_INDICATOR_CLASSES) &#123;</span><br><span class="line">        if (!ClassUtils.isPresent(className, null)) &#123;</span><br><span class="line">            return WebApplicationType.NONE;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;否则返回ServletWeb应用类型。</span><br><span class="line">    return WebApplicationType.SERVLET;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;决定Spring Boot的应用类型，主要是根据类路径中是否含有特定的类来决定，像我们创建web工程时，会在pom.xml中使用spring-boot-starter-web的依赖，这个依赖中会包含ConfigurableWebApplicationContext类，因此会返回WebApplicationType.SERVLET类型。WebApplicationType.NONE代表的该工程不是web应用。WebApplicationType.REACTIVE表示该工程是响应式web应用，返回该应用类型的条件是pom.xml中含有spring-boot-starter-webflux的依赖，截止到目前还没有使用过该依赖，所以先不在这里介绍这种应用类型。我们经常使用到的是WebApplicationType.SERVLET应用类型，所以之后的代码分析都是以WebApplicationType.SERVLET类型作为基础分析。</p>
+<h5 id="ApplicationContextInitializer"><a href="#ApplicationContextInitializer" class="headerlink" title="ApplicationContextInitializer"></a>ApplicationContextInitializer</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;分析了Spring Boot工程的应用类型，紧接着SpringApplication会设置ApplicationContextInitializer，其作用主要是在ApplicationContext创建之后，对ApplicationContext添加相应的功能。之前在介绍SpringApplication构造方法时，看到了使用getSpringFactoriesInstances方法来实例化ApplicationContextInitializer的相应实现类，getSpringFactoriesInstances的调用方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">private &lt;T&gt; Collection&lt;T&gt; getSpringFactoriesInstances(Class&lt;T&gt; type) &#123;</span><br><span class="line">    return getSpringFactoriesInstances(type, new Class&lt;?&gt;[] &#123;&#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private &lt;T&gt; Collection&lt;T&gt; getSpringFactoriesInstances(Class&lt;T&gt; type,</span><br><span class="line">        Class&lt;?&gt;[] parameterTypes, Object... args) &#123;</span><br><span class="line">    &#x2F;&#x2F;获取类加载器</span><br><span class="line">    ClassLoader classLoader &#x3D; getClassLoader();</span><br><span class="line">    &#x2F;&#x2F;该方法主要获取类路径下spring.factories文件中的相应类配置。这里是获取ApplicationContextInitializer的配置</span><br><span class="line">    Set&lt;String&gt; names &#x3D; new LinkedHashSet&lt;&gt;(</span><br><span class="line">            SpringFactoriesLoader.loadFactoryNames(type, classLoader));</span><br><span class="line">    &#x2F;&#x2F;实例化上述所获取到的实现类</span><br><span class="line">    List&lt;T&gt; instances &#x3D; createSpringFactoriesInstances(type, parameterTypes,</span><br><span class="line">            classLoader, args, names);</span><br><span class="line">    &#x2F;&#x2F;对上述实例化后的对象使用AnnotationAwareOrderComparator进行排序。</span><br><span class="line">    AnnotationAwareOrderComparator.sort(instances);</span><br><span class="line">    return instances;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;实例化。主要采用java.reflect包下相关方法进行实例化。</span><br><span class="line">@SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">private &lt;T&gt; List&lt;T&gt; createSpringFactoriesInstances(Class&lt;T&gt; type,</span><br><span class="line">        Class&lt;?&gt;[] parameterTypes, ClassLoader classLoader, Object[] args,</span><br><span class="line">        Set&lt;String&gt; names) &#123;</span><br><span class="line">    List&lt;T&gt; instances &#x3D; new ArrayList&lt;&gt;(names.size());</span><br><span class="line">    for (String name : names) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Class&lt;?&gt; instanceClass &#x3D; ClassUtils.forName(name, classLoader);</span><br><span class="line">            Assert.isAssignable(type, instanceClass);</span><br><span class="line">            Constructor&lt;?&gt; constructor &#x3D; instanceClass</span><br><span class="line">                    .getDeclaredConstructor(parameterTypes);</span><br><span class="line">            T instance &#x3D; (T) BeanUtils.instantiateClass(constructor, args);</span><br><span class="line">            instances.add(instance);</span><br><span class="line">        &#125;</span><br><span class="line">        catch (Throwable ex) &#123;</span><br><span class="line">            throw new IllegalArgumentException(</span><br><span class="line">                    &quot;Cannot instantiate &quot; + type + &quot; : &quot; + name, ex);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return instances;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上边代码有一个非常重要的方法SpringFactoriesLoader.loadFactoryNames(type, classLoader))，这段方法主要是加载classLoader类路径下的spring.factories文件的相应的type配置，这里对这个方法不做过多的解释，想了解更多的可以自己看下源码。上述代码我们想要获取的是ApplicationContextInitializer的配置，我摘取了spring-boot路径下spring.factories关于ApplicationContextInitializer的配置，当然其它路径也存在关于ApplicationContextInitializer的配置，大家如果在IDEA工具中，可以使用ctrl+h来全局查找，这里只介绍下spring-boot路径下spring.factories关于ApplicationContextInitializer的作用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.context.ApplicationContextInitializer&#x3D;\</span><br><span class="line">org.springframework.boot.context.ConfigurationWarningsApplicationContextInitializer,\</span><br><span class="line">org.springframework.boot.context.ContextIdApplicationContextInitializer,\</span><br><span class="line">org.springframework.boot.context.config.DelegatingApplicationContextInitializer,\</span><br><span class="line">org.springframework.boot.web.context.ServerPortInfoApplicationContextInitializer</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>ConfigurationWarningsApplicationContextInitializer： 主要是向BeanFactory中添加ConfigurationWarningsPostProcessor工厂后置处理器，这个类会在ApplicationContext.refresh()方法中使用到，在介绍到refresh方法时再做具体介绍。</li>
+<li>ContextIdApplicationContextInitializer：这个初始化类比较简单，主要设置ApplicationContext的Id属性并注册ContextId的单例Bean。</li>
+<li>DelegatingApplicationContextInitializer：该初始化类主要作用是获取Environment中是否含有“context.initializer.classes”属性，如果存在，则获取其值并继续调用其初始化方法。通过该类用户可以添加自定义的初始化功能，用户实现ApplicationContextInitializer接口，然后通过System.setProperty(“context.initializer.classes”, XXX)来设置，之后在启动Spring Boot应用是就可以在该类中调用到用户自定义的初始化方法。</li>
+<li>ServerPortInfoApplicationContextInitializer：该类主要用作添加WebServerInitializedEvent事件类型的监听器，该监听器的作用是获取webServer启动时的端口，然后将其设置到Environment的参数中。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述便是一部分ApplicationContextInitializer的功能，其中个人认为比较重要的第二点和第三点，第二点我们可以知道ApplicationContext是何时设置了Id属性，第三点通过该初始化类我们了解到用户可以自实现ApplicationContextInitializer的功能并应用到Spring Boot启动中。</p>
+<h5 id="ApplicationListener"><a href="#ApplicationListener" class="headerlink" title="ApplicationListener"></a>ApplicationListener</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在实例化ApplicationContextInitializer的相关配置类之后，紧接着SpringApplication会实例化ApplicationListener监听类。Spring Boot中的ApplicationListener监听了多种类型的事件，包括ContextRefreshedEvent(应用上下文刷新事件)、ApplicationEnvironmentPreparedEvent(Environment预处理完成事件)、ParentContextAvailableEvent(父应用上下文可用事件)以及ApplicationEvent(事件顶层接口)等事件。ApplicationListener的实现众多，在spring.boot路径下就含有9个实现，当然其它的类路径下还有很多实现，我这里之列出了spring.boo路径下相关的9的个实现。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.context.ApplicationListener&#x3D;\</span><br><span class="line">org.springframework.boot.ClearCachesApplicationListener,\</span><br><span class="line">org.springframework.boot.builder.ParentContextCloserApplicationListener,\</span><br><span class="line">org.springframework.boot.context.FileEncodingApplicationListener,\</span><br><span class="line">org.springframework.boot.context.config.AnsiOutputApplicationListener,\</span><br><span class="line">org.springframework.boot.context.config.ConfigFileApplicationListener,\</span><br><span class="line">org.springframework.boot.context.config.DelegatingApplicationListener,\</span><br><span class="line">org.springframework.boot.context.logging.ClasspathLoggingApplicationListener,\</span><br><span class="line">org.springframework.boot.context.logging.LoggingApplicationListener,\</span><br><span class="line">org.springframework.boot.liquibase.LiquibaseServiceLocatorApplicationListener</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>ClearCachesApplicationListener：主要监听ContextRefreshedEvent事件，作用是在SpringApplication执行完prepareContext之后，清空ReflectionUtils中的缓存和调用ClassLoader类中的clearCache方法。</li>
+<li>ParentContextCloserApplicationListener：</li>
+<li>FileEncodingApplicationListener：主要监听ApplicationEnvironmentPreparedEvent事件，作用是在SpringApplication中创建了Environment之后检查environment是否含有属性“spring.mandatory-file-encoding”，若含有则判断是否和系统属性file.encoding是否相等，若不一致，则抛出IllegalStateException。</li>
+<li>AnsiOutputApplicationListener：</li>
+<li>ConfigFileApplicationListener：这个监听类很重要，主要监听了ApplicationEnvironmentPreparedEvent和ApplicationPreparedEvent。ApplicationEnvironmentPreparedEvent事件会将Spring Boot中的application.yml和application.properties加载到Environment中，并且设置其默认的和活跃的profiles，ApplicationEnvironmentPreparedEvent这个事件类型会在”Enviroment的相关操作”详细介绍，这里先了解下。ApplicationPreparedEvent主要是添加PropertySourceOrderingPostProcessor工厂后置处理器。</li>
+<li>DelegatingApplicationListener：改监听类的作用和上一小节所用DelegatingApplicationContextInitializer很相似，主要用作执行用户自定以的ApplicationListener事件，可以通过System.setProperty(“context.listener.classes”, XXXX)实现。</li>
+<li>ClasspathLoggingApplicationListener: 主要用于监听ApplicationEnvironmentPreparedEvent和ApplicationFailedEvent事件，作用是打印想过的日志。</li>
+<li>LoggingApplicationListener：初始化Logger相关配置。</li>
+<li>LiquibaseServiceLocatorApplicationListener：</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;从上边可以看出SpringBoot中ApplicationListener还是非常多的，而且承担着非常重要的作用，这也在某些点上体现了Spring Boot设计的优点，就是单一职责的原则(即一个类应只有一个改变它的原因)。ApplicationListener中最为重要的是ConfigFileApplicationListener，这个会在后续的章节介绍，其它的ApplicationListener都承担着自己不同的使命，大家可以自己详细看下源码，这样掌握的会更清晰一些。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpringApllication的实例化到这里就讲完了，我们知道SpringApplication的实例化主要做了4个事情：第一个是确定应用类型WebAppliType，第二个是初始化ApplicationContextInitlize，第三个是初始化ApplictionListener，第四个是设置主类。在之前的SpringApplication.run(Class clazz, String… arg)我们看到最后还调用了run(String… arg)方法，这个方法是SpringApplication最重要的方法，包括参数加载，ApplicationContext创建都是在这个方法内，所以接下来我们详细看new SpringApplication.run()方法。 </p>
+<h5 id="SpringApplication-run-String…-arg"><a href="#SpringApplication-run-String…-arg" class="headerlink" title="SpringApplication.run(String… arg)"></a>SpringApplication.run(String… arg)</h5><figure class="highlight plain"><figcaption><span>args)</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">public ConfigurableApplicationContext run(String... args) &#123;</span><br><span class="line">    &#x2F;&#x2F;类似于一个调度监控器，监控什么时候开始记录信息，什么时候结束记录信息</span><br><span class="line">    StopWatch stopWatch &#x3D; new StopWatch();</span><br><span class="line">    stopWatch.start();</span><br><span class="line">    ConfigurableApplicationContext context &#x3D; null;</span><br><span class="line">    Collection&lt;SpringBootExceptionReporter&gt; exceptionReporters &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">    &#x2F;&#x2F;设置Spring Boot在没有鼠标、显示器、键盘的情况下也允许启动。Spring Boot大多都工作在该模式下，因此应该将这该属性设置为true。</span><br><span class="line">    configureHeadlessProperty();</span><br><span class="line">    &#x2F;&#x2F;获取SPringApplication监听器的运行实例，在代码中实例化了事件广播器，因此我觉得这个就是一个事件广播器的适配器模式。</span><br><span class="line">    SpringApplicationRunListeners listeners &#x3D; getRunListeners(args);</span><br><span class="line">    &#x2F;&#x2F;事件广播器发送启动事件</span><br><span class="line">    listeners.starting();</span><br><span class="line">    try &#123;</span><br><span class="line">        &#x2F;&#x2F;封装命令行参数</span><br><span class="line">        ApplicationArguments applicationArguments &#x3D; new DefaultApplicationArguments(</span><br><span class="line">                args);</span><br><span class="line">        &#x2F;&#x2F;获取并设置相应的运行环境，这个很重要。可以通过enviroment获取到启动参数</span><br><span class="line">        ConfigurableEnvironment environment &#x3D; prepareEnvironment(listeners,</span><br><span class="line">                applicationArguments);</span><br><span class="line">        &#x2F;&#x2F;是否跳过搜索BeanInfo类   </span><br><span class="line">        configureIgnoreBeanInfo(environment);</span><br><span class="line">        &#x2F;&#x2F;这个就是我们常看到的在控制台上Spring Boot的输出，我们可以实现该接口，重写其方法来设置输出结果</span><br><span class="line">        Banner printedBanner &#x3D; printBanner(environment);</span><br><span class="line">        &#x2F;&#x2F;创建应用ApplicationContext</span><br><span class="line">        context &#x3D; createApplicationContext();</span><br><span class="line">        exceptionReporters &#x3D; getSpringFactoriesInstances(</span><br><span class="line">                SpringBootExceptionReporter.class,</span><br><span class="line">                new Class[] &#123; ConfigurableApplicationContext.class &#125;, context);</span><br><span class="line">        &#x2F;&#x2F;预处理ApplicationContext对象</span><br><span class="line">        prepareContext(context, environment, listeners, applicationArguments,</span><br><span class="line">                printedBanner);</span><br><span class="line">        &#x2F;&#x2F;调用ApplicationContext的refresh方法</span><br><span class="line">        refreshContext(context);</span><br><span class="line">        afterRefresh(context, applicationArguments);</span><br><span class="line">        stopWatch.stop();</span><br><span class="line">        if (this.logStartupInfo) &#123;</span><br><span class="line">            new StartupInfoLogger(this.mainApplicationClass)</span><br><span class="line">                    .logStarted(getApplicationLog(), stopWatch);</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F;广播启动结束事件</span><br><span class="line">        listeners.started(context);</span><br><span class="line">        callRunners(context, applicationArguments);</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Throwable ex) &#123;</span><br><span class="line">        handleRunFailure(context, ex, exceptionReporters, listeners);</span><br><span class="line">        throw new IllegalStateException(ex);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    try &#123;</span><br><span class="line">        &#x2F;&#x2F;广播正在运行中的事件</span><br><span class="line">        listeners.running(context);</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Throwable ex) &#123;</span><br><span class="line">        handleRunFailure(context, ex, exceptionReporters, null);</span><br><span class="line">        throw new IllegalStateException(ex);</span><br><span class="line">    &#125;</span><br><span class="line">    return context;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;获取spring.factories中的springApplicationRunListener配置并实例化</span><br><span class="line">private SpringApplicationRunListeners getRunListeners(String[] args) &#123;</span><br><span class="line">    Class&lt;?&gt;[] types &#x3D; new Class&lt;?&gt;[] &#123; SpringApplication.class, String[].class &#125;;</span><br><span class="line">    return new SpringApplicationRunListeners(logger, getSpringFactoriesInstances(</span><br><span class="line">            SpringApplicationRunListener.class, types, this, args));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上边的代码看起来应该不难，但是如果一步步深入下去，你会发现其是一个非常大的工程，包括获取设置应用启动的参数解析器，创建ApplicationContext并注入相关Bean等等，其中比较重要的就是prepareEnvironment和prepareContext两个方法，这两个方法会在后续的详细章节进行介绍，在这里我们先看下整体的一个工作流程。</p>
+<ol>
+<li>创建StopWatch对象，StopWatch实例主要用来记录SpringApplication的启动时间和启动完成时间，调用start()方法会记录当前时间即是启动时间，调用stop()方法记录启动使用的总时间。</li>
+<li>调用configureHeadlessProperty()方法，主要是设置”java.awt.headless”属性，如果系统属性中不存在改配置，则默认设置为true，否则使用系统属性已配置的值。该属性的作用主要是允许SpringApplication工作在无显示器、无鼠标、无键盘的环境中。</li>
+<li>调用getRunListeners(args)方法获取事件广播器的实例，通过查找spring.factories的SpringApplicationRunListener的实现类进行实例化并封装到SpringApplictionListeners类中，这里使用了观察者模式(即当一个对象修改时可以通知其依赖的对象)。SpringApplicationRunListener的实现类使用了适配器模式。</li>
+<li>广播启动事件listeners.starting()：Spring Boot路径下的spring.factories中只有一个支持启动事件的监听器就是LoggingApplicationListener，其主要作用根据类路径下的LoggingSystemClass来初始化日志系统。</li>
+<li>调用new DefaultApplicationArguments(args)方法，其作用是封装命令行参数和命令行参数解析器。</li>
+<li>prepareEnvironment(listeners, applicationArguments)这个方法很重要，主要是添加启动参数解析器和设置spring.active.profiles。这个会在下个章节详细讲解。</li>
+<li>configureIgnoreBeanInfo(enviroment)：是否跳过搜索BeanInfo类，暂不知道作用是什么，待之后补充。</li>
+<li>printBanner(enviroment): 这个方法就是在启动的时候打印输出Spring Boot那个图标的方法，我们可以通过springApplication.setBanner()方法添加自己的需要的输出。</li>
+<li>创建ApplicationContext对象，根据webApplicationType创建ApplicationContext，如果是web环境，则创建的是AnnotationServletWebApplicationContext对象，其它的可以大家私下了解。</li>
+<li>prepareContext(context, environment, listeners, applicationArguments, printedBanner)：预处理ApplicationContext对象，包括设置ApplicationContext的运行环境environment，调用之前说的ApplicationContextInitlize的初始方法，调用相应监听器方法等。</li>
+<li>refreshContext(context):刷新ApplicationContext,调用的则是AbstractApplicationContext的refresh()方法，这一步会实例化Spring中所有的Bean对象以及EnableConfiguration对象。</li>
+<li>广播启动完成事件，做相应的处理。</li>
+<li>广播正在运行事件，做相应的处理。</li>
+<li>返回ApplicationContext对象。</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述方法便是我们在main方法中调用了SpringApplication.run(Class clazz, String… args)方法之后Spring Boot内部都做了什么操作，上述只是介绍Spring Boot启动的整体执行流程，对于Spring Boot怎么实现自动加载，启动参数是怎么加载，Bean如何注入到Bean工厂中都为进行详细讲解，所以接下来我们就对上述这几种情况进行详细介绍，首先分析启动参数是如何加载的？</p>
+<h4 id="Enviroment的相关操作"><a href="#Enviroment的相关操作" class="headerlink" title="Enviroment的相关操作"></a>Enviroment的相关操作</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">private ConfigurableEnvironment prepareEnvironment(</span><br><span class="line">        SpringApplicationRunListeners listeners,</span><br><span class="line">        ApplicationArguments applicationArguments) &#123;</span><br><span class="line">    &#x2F;&#x2F; Create and configure the environment</span><br><span class="line">    ConfigurableEnvironment environment &#x3D; getOrCreateEnvironment();</span><br><span class="line">    configureEnvironment(environment, applicationArguments.getSourceArgs());</span><br><span class="line">    listeners.environmentPrepared(environment);</span><br><span class="line">    bindToSpringApplication(environment);</span><br><span class="line">    if (!this.isCustomEnvironment) &#123;</span><br><span class="line">        environment &#x3D; new EnvironmentConverter(getClassLoader())</span><br><span class="line">                .convertEnvironmentIfNecessary(environment, deduceEnvironmentClass());</span><br><span class="line">    &#125;</span><br><span class="line">    ConfigurationPropertySources.attach(environment);</span><br><span class="line">    return environment;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="getOrCreateEnvironment"><a href="#getOrCreateEnvironment" class="headerlink" title="getOrCreateEnvironment()"></a>getOrCreateEnvironment()</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Environment是一个非常重要的组件，它代表的当前Spring Boot运行的环境，可以通过该组件配置profile和管理启动参数，上述代码便是Environment的创建和相关配置的代码，其中getOrCreateEnviroment()方法是创建Environment的，其源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">private ConfigurableEnvironment getOrCreateEnvironment() &#123;</span><br><span class="line">    if (this.environment !&#x3D; null) &#123;</span><br><span class="line">        return this.environment;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;判断应用类型返回相应的环境变量</span><br><span class="line">    switch (this.webApplicationType) &#123;</span><br><span class="line">    case SERVLET:</span><br><span class="line">        return new StandardServletEnvironment();</span><br><span class="line">    case REACTIVE:</span><br><span class="line">        return new StandardReactiveWebEnvironment();</span><br><span class="line">    default:</span><br><span class="line">        return new StandardEnvironment();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;如果在启动SpringApplication设置了Environment属性，则返回开发人员设置的Environment，否则根据应用类型返回相应的Environment实现类，我们说了我们暂只分析webApplicationType为servlet类型的，因此这里创建的是StandardServletEnviroment实例，我们可以StandardServletEnviroment的继承关系图。</p>
+<h5 id="StandardServletEnviroment"><a href="#StandardServletEnviroment" class="headerlink" title="StandardServletEnviroment"></a>StandardServletEnviroment</h5><p><img src="spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/StandardServletEnvironment.png" alt="StandardServletEnviroment类图"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上图便是StandardServletEnviroment的继承关系图，可以看出它拥有PropertyResolver的获取属性功能和Environment的获取profile的功能，上述各个类提供的功能如下：</p>
+<ul>
+<li>PropertyResolver：提供属性访问的功能，这里的属性包括命令行、系统属性、系统环境变量、配置文件等提供的属性。</li>
+<li>ConfigurablePropertyResolver：继承了PropertyResolver，主要提供属性类型转换的功能。</li>
+<li>Environment：主要用于获取当前应用处于活动的Profile和默认的Profile。</li>
+<li>ConfigurableEnvironment：提供了管理激活Profile和默认Profile功能。</li>
+<li>ConfigurableWebEnvironment：主要提供了initPropertySources，用于对Servlet上下文和Servlet参数的配置功能。</li>
+<li>AbstractEnvironment： 实现了ConfigurableEnvironment接口，并且提供了PropertyResolver的实现类用来获取属性。</li>
+<li>StandardEnvironment：非Web应用环境下的标准Enviroment。</li>
+<li>StandardServletEnviroment：集成了StandardEnvironment和实现了ConfigurableWebEnvironment接口，具有上述两个类的功能，并且实现了Environment对Servlet上下文和Servlet参数的配置功能。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;介绍了StandardServletEnviroment的实现类图，我们接着看下new StandardServletEnviroment()内部做了哪些操作，到底Spring Boot参数配置顺序是如何实现的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">public AbstractEnvironment() &#123;</span><br><span class="line">    customizePropertySources(this.propertySources);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;StandardServletEnviroment的customizePropertySources方法</span><br><span class="line">protected void customizePropertySources(MutablePropertySources propertySources) &#123;</span><br><span class="line">    &#x2F;&#x2F;像MutablePropertySources中添加上下文配置的PropertySource实现和Servlet参数的PropertySource</span><br><span class="line">    &#x2F;&#x2F;主要作用于之后initPropertySource的处理</span><br><span class="line">    propertySources.addLast(new StubPropertySource(SERVLET_CONFIG_PROPERTY_SOURCE_NAME));</span><br><span class="line">    propertySources.addLast(new StubPropertySource(SERVLET_CONTEXT_PROPERTY_SOURCE_NAME));</span><br><span class="line">    if (JndiLocatorDelegate.isDefaultJndiEnvironmentAvailable()) &#123;</span><br><span class="line">        propertySources.addLast(new JndiPropertySource(JNDI_PROPERTY_SOURCE_NAME));</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;调用父类的自定义PropertySource</span><br><span class="line">    super.customizePropertySources(propertySources);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;StandardEnvironment的customizePropertySources方法</span><br><span class="line">@Override</span><br><span class="line">protected void customizePropertySources(MutablePropertySources propertySources) &#123;</span><br><span class="line">    &#x2F;&#x2F;添加用于解析系统属性的MapPropertySource类</span><br><span class="line">    propertySources.addLast(new MapPropertySource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME, getSystemProperties()));</span><br><span class="line">    &#x2F;&#x2F;添加用于解析系统环境变量SystemEnvironmentPropertySource类</span><br><span class="line">    propertySources.addLast(new SystemEnvironmentPropertySource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, getSystemEnvironment()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;StandardServletEnviroment本身只提供了默认的构造方法，但是我们知道子类要初始化若父类未初始化，需要首先初始化父类，因此我们看到在AbstractEnvironment类中调用了customizePropertySources方法，StandardServletEnviroment重写了customizePropertySources方法，其目的如下：</p>
+<ul>
+<li>向Environment添加了应用上下文ServletContext启动参数和Servlet启动参数的解析类StubPropertySource，StubPropertySource是一个默认返回空的属性解析类，主要是其占位符的作用，为后续的initPropertySource做预处理。</li>
+<li>添加用于解析java:comp/env的JNDI属性配置的JndiPropertySource类</li>
+<li>调用父层StandardEnviroment的customizePropertySources方法</li>
+<li>添加用于解析系统属性的MapPropertySource类。</li>
+<li>添加用于解析系统环境变量的SystemEnvironmentPropertySource的类。</li>
+</ul>
+<h5 id="configureEnvironment-ConfigurableEnvironment-String"><a href="#configureEnvironment-ConfigurableEnvironment-String" class="headerlink" title="configureEnvironment(ConfigurableEnvironment,String[])"></a>configureEnvironment(ConfigurableEnvironment,String[])</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通过上述的分析，我们可以清楚的发现其和Spring Boot的配置文件加载优先级很相似，但是好像缺少了几个非常重要的配置文件解析，包括命令行解析，yaml文件的解析和properties文件的解析都没有。不着急，我们才只分析到prepareEnviroment的第一个方法，等分析完这个方法你就会发现其它几个属性解析类，也会添加到其中。我们继续分析prepareStatement中的调用方法，创建好StandServletEnviroment对象之后，会调用configureEnviroment(environment, applicationArguments.getSourceArgs())， 源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置Environment的相关属性</span><br><span class="line">protected void configureEnvironment(ConfigurableEnvironment environment,</span><br><span class="line">        String[] args) &#123;</span><br><span class="line">    if (this.addConversionService) &#123;</span><br><span class="line">        ConversionService conversionService &#x3D; ApplicationConversionService</span><br><span class="line">                .getSharedInstance();</span><br><span class="line">        environment.setConversionService(</span><br><span class="line">                (ConfigurableConversionService) conversionService);</span><br><span class="line">    &#125;</span><br><span class="line">    configurePropertySources(environment, args);</span><br><span class="line">    configureProfiles(environment, args);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置属性来源解析器，这里主要的设置是命令行参数源解析器</span><br><span class="line">protected void configurePropertySources(ConfigurableEnvironment environment,</span><br><span class="line">        String[] args) &#123;</span><br><span class="line">    MutablePropertySources sources &#x3D; environment.getPropertySources();</span><br><span class="line">    &#x2F;&#x2F;判断是否使用SpringApplication的实例设置defaultPropertie属性，若设置将其放在参数解析器链最后</span><br><span class="line">    if (this.defaultProperties !&#x3D; null &amp;&amp; !this.defaultProperties.isEmpty()) &#123;</span><br><span class="line">        sources.addLast(</span><br><span class="line">                new MapPropertySource(&quot;defaultProperties&quot;, this.defaultProperties));</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;判断是否启用命令行参数，默认为true并判断命令行参数的大小是否大于0.</span><br><span class="line">    if (this.addCommandLineProperties &amp;&amp; args.length &gt; 0) &#123;</span><br><span class="line">        &#x2F;&#x2F;判断是否存在相同的参数解析器，若果存在就合并并替换掉MutablePropertySources的相同名称的参数解析器</span><br><span class="line">        String name &#x3D; CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;</span><br><span class="line">        if (sources.contains(name)) &#123;</span><br><span class="line">            PropertySource&lt;?&gt; source &#x3D; sources.get(name);</span><br><span class="line">            CompositePropertySource composite &#x3D; new CompositePropertySource(name);</span><br><span class="line">            composite.addPropertySource(new SimpleCommandLinePropertySource(</span><br><span class="line">                    &quot;springApplicationCommandLineArgs&quot;, args));</span><br><span class="line">            composite.addPropertySource(source);</span><br><span class="line">            sources.replace(name, composite);</span><br><span class="line">        &#125;</span><br><span class="line">        else &#123;</span><br><span class="line">            &#x2F;&#x2F;创建命令行参数解析器并添加到MutablePropertySources的首部。</span><br><span class="line">            sources.addFirst(new SimpleCommandLinePropertySource(args));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;设置SpringApplication当前使用的Profile</span><br><span class="line">protected void configureProfiles(ConfigurableEnvironment environment, String[] args) &#123;</span><br><span class="line">    &#x2F;&#x2F;获取环境中存在的使用的Profile，这个主要是通过命令行、系统属性、环境变量来读取的Spring.active.profiles方法</span><br><span class="line">    environment.getActiveProfiles(); &#x2F;&#x2F; ensure they are initialized</span><br><span class="line">    &#x2F;&#x2F;添加SpringApplication中的additionalProfiles属性的Profile配置</span><br><span class="line">    Set&lt;String&gt; profiles &#x3D; new LinkedHashSet&lt;&gt;(this.additionalProfiles);</span><br><span class="line">    profiles.addAll(Arrays.asList(environment.getActiveProfiles()));</span><br><span class="line">    environment.setActiveProfiles(StringUtils.toStringArray(profiles));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述的代码主要设置命令行参数解析器，并将其添加到命令行解析器链MutablePropertySources的首部。然后是调用configureProfiles方法来设置使用的Profile，可能会有疑问为什么要先获取environment的ActiveProfiles，这里如果按照之前的逻辑来说的话，应该是返回的空或者时空集合，但是在之前我们也说过可以通过命令行参数、系统属性、环境变量等设置，所以这里可能通过命令行等其他方面设置了，所以需要将其添加到环境中。</p>
+<h5 id="listeners-environmentPrepared-environment"><a href="#listeners-environmentPrepared-environment" class="headerlink" title="listeners.environmentPrepared(environment)"></a>listeners.environmentPrepared(environment)</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;命令行参数解析器在configureEnvironment方法中会添加到首部，所以命令行参数解析器的优先级是最高的，但是还没有分析yaml和properties的解析，yaml文件的解析和properties的参数解析是在监听器中进行加载的，所以我们继续看接下来的方法listeners.environmentPrepared(environment)。listeners.environmentPrepared(environment)会向监听器发送一个ApplicationEnvironmentPreparedEvent事件，在之前的讲解中，我们讲了在SpringApplication中加载的监听器中FileEncodingApplicationListener、AnsiOutputApplicationListener、ConfigFileApplicationListener、监听了ApplicationEnvironmentPreparedEvent事件，因此我们按照上述的监听器分析下都做了什么操作？</p>
+<h6 id="FileEncodingApplicationListener"><a href="#FileEncodingApplicationListener" class="headerlink" title="FileEncodingApplicationListener"></a>FileEncodingApplicationListener</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">    public class FileEncodingApplicationListener</span><br><span class="line">        implements ApplicationListener&lt;ApplicationEnvironmentPreparedEvent&gt;, Ordered &#123;</span><br><span class="line"></span><br><span class="line">    private static final Log logger &#x3D; LogFactory</span><br><span class="line">            .getLog(FileEncodingApplicationListener.class);</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int getOrder() &#123;</span><br><span class="line">        return Ordered.LOWEST_PRECEDENCE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">    * 判断系统属性、命令行参数、系统环境变量是否存在spring.mandatory-file-encoding</span><br><span class="line">    * 判断spring.mandatory-file-encoding的值和系统属性中file.encoding设置的值一致，若不一致，则抛出异常.</span><br><span class="line">    * &#x2F;</span><br><span class="line">    @Override</span><br><span class="line">    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) &#123;</span><br><span class="line">        ConfigurableEnvironment environment &#x3D; event.getEnvironment();</span><br><span class="line">        if (!environment.containsProperty(&quot;spring.mandatory-file-encoding&quot;)) &#123;</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        String encoding &#x3D; System.getProperty(&quot;file.encoding&quot;);</span><br><span class="line">        String desired &#x3D; environment.getProperty(&quot;spring.mandatory-file-encoding&quot;);</span><br><span class="line">        if (encoding !&#x3D; null &amp;&amp; !desired.equalsIgnoreCase(encoding)) &#123;</span><br><span class="line">            logger.error(&quot;System property &#39;file.encoding&#39; is currently &#39;&quot; + encoding</span><br><span class="line">                    + &quot;&#39;. It should be &#39;&quot; + desired</span><br><span class="line">                    + &quot;&#39; (as defined in &#39;spring.mandatoryFileEncoding&#39;).&quot;);</span><br><span class="line">            logger.error(&quot;Environment variable LANG is &#39;&quot; + System.getenv(&quot;LANG&quot;)</span><br><span class="line">                    + &quot;&#39;. You could use a locale setting that matches encoding&#x3D;&#39;&quot;</span><br><span class="line">                    + desired + &quot;&#39;.&quot;);</span><br><span class="line">            logger.error(&quot;Environment variable LC_ALL is &#39;&quot; + System.getenv(&quot;LC_ALL&quot;)</span><br><span class="line">                    + &quot;&#39;. You could use a locale setting that matches encoding&#x3D;&#39;&quot;</span><br><span class="line">                    + desired + &quot;&#39;.&quot;);</span><br><span class="line">            throw new IllegalStateException(</span><br><span class="line">                    &quot;The Java Virtual Machine has not been configured to use the &quot;</span><br><span class="line">                            + &quot;desired default character encoding (&quot; + desired + &quot;).&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FileEncodingApplicationListener监听器中实现的功能非常简单，只是校验环境是否存在spring.mandatory-file-encoding属性，若存在spring.mandatory-file-encoding属性和系统属性中的file.encoding不相同，则抛出异常。</p>
+<h6 id="AnsiOutputApplicationListener"><a href="#AnsiOutputApplicationListener" class="headerlink" title="AnsiOutputApplicationListener"></a>AnsiOutputApplicationListener</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public class AnsiOutputApplicationListener</span><br><span class="line">        implements ApplicationListener&lt;ApplicationEnvironmentPreparedEvent&gt;, Ordered &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) &#123;</span><br><span class="line">        ConfigurableEnvironment environment &#x3D; event.getEnvironment();</span><br><span class="line">        Binder.get(environment)</span><br><span class="line">                .bind(&quot;spring.output.ansi.enabled&quot;, AnsiOutput.Enabled.class)</span><br><span class="line">                .ifBound(AnsiOutput::setEnabled);</span><br><span class="line">        AnsiOutput.setConsoleAvailable(environment</span><br><span class="line">                .getProperty(&quot;spring.output.ansi.console-available&quot;, Boolean.class));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int getOrder() &#123;</span><br><span class="line">        &#x2F;&#x2F; Apply after ConfigFileApplicationListener has called EnvironmentPostProcessors</span><br><span class="line">        return ConfigFileApplicationListener.DEFAULT_ORDER + 1;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;该监听器用于判断环境属性中是否存在spring.output.ansi.enabled并且值为true，若为true时，则表示彩色显示输出日志。spring.output.ansi.console-available属性用于设置是否控制台输出。</p>
+<h6 id="ConfigFileApplicationListener"><a href="#ConfigFileApplicationListener" class="headerlink" title="ConfigFileApplicationListener"></a>ConfigFileApplicationListener</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">public class ConfigFileApplicationListener</span><br><span class="line">        implements EnvironmentPostProcessor, SmartApplicationListener, Ordered &#123;</span><br><span class="line"></span><br><span class="line">    private static final String DEFAULT_PROPERTIES &#x3D; &quot;defaultProperties&quot;;</span><br><span class="line"></span><br><span class="line">    private static final String DEFAULT_SEARCH_LOCATIONS &#x3D; &quot;classpath:&#x2F;,classpath:&#x2F;config&#x2F;,file:.&#x2F;,file:.&#x2F;config&#x2F;&quot;;</span><br><span class="line"></span><br><span class="line">    private static final String DEFAULT_NAMES &#x3D; &quot;application&quot;;</span><br><span class="line"></span><br><span class="line">    private static final Set&lt;String&gt; NO_SEARCH_NAMES &#x3D; Collections.singleton(null);</span><br><span class="line"></span><br><span class="line">    private static final Bindable&lt;String[]&gt; STRING_ARRAY &#x3D; Bindable.of(String[].class);</span><br><span class="line"></span><br><span class="line">    public static final String ACTIVE_PROFILES_PROPERTY &#x3D; &quot;spring.profiles.active&quot;;</span><br><span class="line"></span><br><span class="line">    public static final String INCLUDE_PROFILES_PROPERTY &#x3D; &quot;spring.profiles.include&quot;;</span><br><span class="line"></span><br><span class="line">    public static final String CONFIG_NAME_PROPERTY &#x3D; &quot;spring.config.name&quot;;</span><br><span class="line"></span><br><span class="line">    public static final String CONFIG_LOCATION_PROPERTY &#x3D; &quot;spring.config.location&quot;;</span><br><span class="line"></span><br><span class="line">    public static final String CONFIG_ADDITIONAL_LOCATION_PROPERTY &#x3D; &quot;spring.config.additional-location&quot;;</span><br><span class="line"></span><br><span class="line">    public static final int DEFAULT_ORDER &#x3D; Ordered.HIGHEST_PRECEDENCE + 10;</span><br><span class="line"></span><br><span class="line">    private final DeferredLog logger &#x3D; new DeferredLog();</span><br><span class="line"></span><br><span class="line">    private String searchLocations;</span><br><span class="line"></span><br><span class="line">    private String names;</span><br><span class="line"></span><br><span class="line">    private int order &#x3D; DEFAULT_ORDER;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;判断该监听器是否监听该事件</span><br><span class="line">    @Override</span><br><span class="line">    public boolean supportsEventType(Class&lt;? extends ApplicationEvent&gt; eventType) &#123;</span><br><span class="line">        return ApplicationEnvironmentPreparedEvent.class.isAssignableFrom(eventType)</span><br><span class="line">                || ApplicationPreparedEvent.class.isAssignableFrom(eventType);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;监听器监听的事件触发时实现的功能</span><br><span class="line">    @Override</span><br><span class="line">    public void onApplicationEvent(ApplicationEvent event) &#123;</span><br><span class="line">        &#x2F;&#x2F;当前应用环境准备好触发的事件时调用的方法</span><br><span class="line">        if (event instanceof ApplicationEnvironmentPreparedEvent) &#123;</span><br><span class="line">            onApplicationEnvironmentPreparedEvent(</span><br><span class="line">                    (ApplicationEnvironmentPreparedEvent) event);</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F;当前应用上下文准备好触发的事件时调用的方法</span><br><span class="line">        if (event instanceof ApplicationPreparedEvent) &#123;</span><br><span class="line">            onApplicationPreparedEvent(event);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;应用环境准备好触发的事件实现</span><br><span class="line">    private void onApplicationEnvironmentPreparedEvent(</span><br><span class="line">            ApplicationEnvironmentPreparedEvent event) &#123;</span><br><span class="line">        &#x2F;&#x2F;从spring.factories中获取EnvironmentProcessor的实现类</span><br><span class="line">        List&lt;EnvironmentPostProcessor&gt; postProcessors &#x3D; loadPostProcessors();</span><br><span class="line">        &#x2F;&#x2F;将当前的方法也添加到processors的集合中</span><br><span class="line">        postProcessors.add(this);</span><br><span class="line">        AnnotationAwareOrderComparator.sort(postProcessors);</span><br><span class="line">        &#x2F;&#x2F;循环调用EnvironmentProcessor中的postProcessorEnviroment的方法</span><br><span class="line">        for (EnvironmentPostProcessor postProcessor : postProcessors) &#123;</span><br><span class="line">            postProcessor.postProcessEnvironment(event.getEnvironment(),</span><br><span class="line">                    event.getSpringApplication());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 从spring.factories中获取EnvironmentProcessor的实现类</span><br><span class="line">     * SpringFactoriesLoader是个工具类，用于获取spring.factories的相关配置并实例化其内部的配置。</span><br><span class="line">     * &#x2F;</span><br><span class="line">    List&lt;EnvironmentPostProcessor&gt; loadPostProcessors() &#123;</span><br><span class="line">        return SpringFactoriesLoader.loadFactories(EnvironmentPostProcessor.class,</span><br><span class="line">                getClass().getClassLoader());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * ConfigFileApplicationListener实现了EnvironmentProcessor的类</span><br><span class="line">     * 在onApplicationEnvironmentPreparedEvent的方法中调用了postProcessEnvironment的方法</span><br><span class="line">     * 该方法用于向MultiPropertySources中添加参数解析器。</span><br><span class="line">     * &#x2F;</span><br><span class="line">    @Override</span><br><span class="line">    public void postProcessEnvironment(ConfigurableEnvironment environment,</span><br><span class="line">            SpringApplication application) &#123;</span><br><span class="line">        addPropertySources(environment, application.getResourceLoader());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void onApplicationPreparedEvent(ApplicationEvent event) &#123;</span><br><span class="line">        this.logger.switchTo(ConfigFileApplicationListener.class);</span><br><span class="line">        addPostProcessors(((ApplicationPreparedEvent) event).getApplicationContext());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ConfigFileApplicationListener说过是非常重要的一个监听器，用于向当前应用环境注册properties和yaml的参数解析器，其具体实现在上述中的addPropertySources方法，我们继续看addPropertySources的源码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">protected void addPropertySources(ConfigurableEnvironment environment,</span><br><span class="line">        ResourceLoader resourceLoader) &#123;</span><br><span class="line">    &#x2F;&#x2F;向当前应用环境添加Random参数解析器</span><br><span class="line">    &#x2F;&#x2F;SpringBoot可以配置random.int,random.long等值，可以这样配置就归功于这个PropertySource。</span><br><span class="line">    RandomValuePropertySource.addToEnvironment(environment);</span><br><span class="line">    &#x2F;&#x2F;创建Loader实例，并且执行加载方方法，这个类用于加载yaml和properties的参数解析器</span><br><span class="line">    new Loader(environment, resourceLoader).load();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="Loader-load"><a href="#Loader-load" class="headerlink" title="Loader.load()"></a>Loader.load()</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">private class Loader &#123;</span><br><span class="line">    private final Log logger &#x3D; ConfigFileApplicationListener.this.logger;</span><br><span class="line">    &#x2F;&#x2F;当前的应用环境，ConfigurableEnvironment的实现类</span><br><span class="line">    private final ConfigurableEnvironment environment;</span><br><span class="line">    &#x2F;&#x2F;参数占位符解析器</span><br><span class="line">    private final PropertySourcesPlaceholdersResolver placeholdersResolver;</span><br><span class="line">    &#x2F;&#x2F;资源加载器</span><br><span class="line">    private final ResourceLoader resourceLoader;</span><br><span class="line">    &#x2F;&#x2F;参数解析器加载类集合，用于存储类加载器</span><br><span class="line">    private final List&lt;PropertySourceLoader&gt; propertySourceLoaders;</span><br><span class="line">    &#x2F;&#x2F;Profile集合类</span><br><span class="line">    private Deque&lt;Profile&gt; profiles;</span><br><span class="line">    &#x2F;&#x2F;用于表示已处理过的Profile集合</span><br><span class="line">    private List&lt;Profile&gt; processedProfiles;</span><br><span class="line">    &#x2F;&#x2F;</span><br><span class="line">    private boolean activatedProfiles;</span><br><span class="line">    &#x2F;&#x2F;profile和PropertySource解析类的Map集合</span><br><span class="line">    private Map&lt;Profile, MutablePropertySources&gt; loaded;</span><br><span class="line">    &#x2F;&#x2F;</span><br><span class="line">    private Map&lt;DocumentsCacheKey, List&lt;Document&gt;&gt; loadDocumentsCache &#x3D; new HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;创建Loader实例</span><br><span class="line">    Loader(ConfigurableEnvironment environment, ResourceLoader resourceLoader) &#123;</span><br><span class="line">        this.environment &#x3D; environment;</span><br><span class="line">        this.placeholdersResolver &#x3D; new PropertySourcesPlaceholdersResolver(</span><br><span class="line">                this.environment);</span><br><span class="line">        this.resourceLoader &#x3D; (resourceLoader !&#x3D; null) ? resourceLoader</span><br><span class="line">                : new DefaultResourceLoader();</span><br><span class="line">        &#x2F;&#x2F;用于获取spring.factories中的PropertySourceLoader的实现类并实例化。</span><br><span class="line">        this.propertySourceLoaders &#x3D; SpringFactoriesLoader.loadFactories(</span><br><span class="line">                PropertySourceLoader.class, getClass().getClassLoader());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void load() &#123;</span><br><span class="line">        this.profiles &#x3D; new LinkedList&lt;&gt;();</span><br><span class="line">        this.processedProfiles &#x3D; new LinkedList&lt;&gt;();</span><br><span class="line">        this.activatedProfiles &#x3D; false;</span><br><span class="line">        this.loaded &#x3D; new LinkedHashMap&lt;&gt;();</span><br><span class="line">        &#x2F;&#x2F;判断当前应用环境是否存在spring.active.profile或存在spring.include.profile，若过不存在则返回一个默认的profile。</span><br><span class="line">        initializeProfiles();</span><br><span class="line">        &#x2F;&#x2F;判断是profiles集合是否为空，若不为空则，则加载默认的Profile或者活跃的Profile。将其的参数解析器添加到当前应用环境中</span><br><span class="line">        while (!this.profiles.isEmpty()) &#123;</span><br><span class="line">            Profile profile &#x3D; this.profiles.poll();</span><br><span class="line">            if (profile !&#x3D; null &amp;&amp; !profile.isDefaultProfile()) &#123;</span><br><span class="line">                addProfileToEnvironment(profile.getName());</span><br><span class="line">            &#125;</span><br><span class="line">            &#x2F;&#x2F;加载配置文件到当前应用环境中。</span><br><span class="line">            load(profile, this::getPositiveProfileFilter,</span><br><span class="line">                    addToLoaded(MutablePropertySources::addLast, false));</span><br><span class="line">            &#x2F;&#x2F;将当前的profile加载到已处理的profiles集合</span><br><span class="line">            this.processedProfiles.add(profile);</span><br><span class="line">        &#125;</span><br><span class="line">        resetEnvironmentProfiles(this.processedProfiles);</span><br><span class="line">        &#x2F;&#x2F;添加那些不是当前环境支持活跃的Profile</span><br><span class="line">        load(null, this::getNegativeProfileFilter,</span><br><span class="line">                addToLoaded(MutablePropertySources::addFirst, true));</span><br><span class="line">        addLoadedPropertySources();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;初始化Profiles，获取当前应用环境的profile</span><br><span class="line">    private void initializeProfiles() &#123;</span><br><span class="line">        &#x2F;&#x2F; The default profile for these purposes is represented as null. We add it</span><br><span class="line">        &#x2F;&#x2F; first so that it is processed first and has lowest priority.</span><br><span class="line">        this.profiles.add(null);</span><br><span class="line">        &#x2F;&#x2F;获取当前应用环境Profile的集合，即判断系统属性和环境变量中是否有spring.active.profiles或是spring.include.profiles属性。</span><br><span class="line">        Set&lt;Profile&gt; activatedViaProperty &#x3D; getProfilesActivatedViaProperty();</span><br><span class="line">        this.profiles.addAll(getOtherActiveProfiles(activatedViaProperty));</span><br><span class="line">        &#x2F;&#x2F; Any pre-existing active profiles set via property sources (e.g.</span><br><span class="line">        &#x2F;&#x2F; System properties) take precedence over those added in config files.</span><br><span class="line">        addActiveProfiles(activatedViaProperty);</span><br><span class="line">        &#x2F;&#x2F;如果当前的profiles的数量为1，即为null。则创建默认的profile实例。</span><br><span class="line">        if (this.profiles.size() &#x3D;&#x3D; 1) &#123; &#x2F;&#x2F; only has null profile</span><br><span class="line">            for (String defaultProfileName : this.environment.getDefaultProfiles()) &#123;</span><br><span class="line">                Profile defaultProfile &#x3D; new Profile(defaultProfileName, true);</span><br><span class="line">                this.profiles.add(defaultProfile);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述是创建获取配置文件实例的方法，构造函数Loader(ConfigurableEnvironment environment, ResourceLoader resourceLoader)包括设置当前应用环境、参数占位符解析器、资源加载器以及从spring.factories中获取PropertySourceLoader实现类。创建Loader类之后，会紧随调用load()方法，load方法实现比较复杂，这里先罗列下load()方法的整体流程，然后在细看其中的方法，整体流程如下：</p>
+<ol>
+<li>initializeProfiles()： 初始化profiles，并添加必要的Profile实例。</li>
+<li>遍历profiles集合列表，然后对其中的每个profile做处理，首先是对空的profile进行处理，获取配置的文件路径集合，spring.config.location若未指定时则返回默认的路径(classpath:/,classpath:/config/,file:/,file:/config/)下的文件，spring.config.name指定了文件的名称，若未指定时返回的是application。</li>
+<li>遍历上述的配置文件并加载转换为Document，然后获取其中的spring.profiles.active和spring.profiles.include属性的值，并将其加载到profiles中，并将配置文件封装为一个propertySource实现类添加到loaded中。</li>
+<li>继续获取profiles列表的值，例如我们上述指定spring.profiles.active=dev，那么会加载上述路径下application-dev.properties/application-dev.yml文件，并将其添加封装为propertySource的实现类，添加到Loader类的loaded属性中。</li>
+<li>addLoadedPropertySources():方法是将loaded集合反向，然后将其中propertySource值添加到当前应用环境的MutablePropertySources的中。</li>
+</ol>
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Environment是在Spring Boot占据着举足轻重的作用，ApplicationContext在启动的时候都是从Environment中获取属性值，在之前的分析中，我们讲了Environment是怎样加载参数的，在这里再总体的介绍下：</p>
+<ul>
+<li>创建Environment实现类，web应用一般创建的是StandServletEnviroment，会调用父类的customerProperties方法，在这里会加载系统属性来源类和系统环境变量来源类到当前应用环境Enviroment的propertySources属性中。</li>
+<li>调用ConfigureEnviroment方法，会将命令行启动参数封装为MapPropertySource添加到应用环境Enviroment的propertySources属性中，并且会放置到首部。</li>
+<li>调用监听器的当前应用环境准备好事件，会触发ConfigFileApplicationListener的事件，来加载配置文件的属性来源类到应用环境Enviroment的propertySources属性中，放置在末尾。</li>
+<li>在ApplicationContext刷新时，会调用BeanFactoryPostProcessor的实现类-PropertySourceOrderingPostProcessor，该处置类会将当前应用环境的defaultProperties的属性来源解析类调整到最后。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Spring Boot简化了开发人员的许多工作，但是只有掌握了Spring Boot的实现原理才能更好地使用Spring Boot做相应的开发，例如携程的Apollo的配置中心便用到了Environment的许多实现，因此掌握了Spring Boot便可以更好地使用他人的框架以及开发出适合自己业务系统的框架。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;之前说过每写完一篇文章都会分享一个自己觉得不错句子，可能是歌词，可能是评论，可能是电影的对白，带给你的可能是感动，伤心、开心等等。不管你怎么想，我就是想分享，所以今天的分享话语是……</p>
+<p style="color: green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;“原来我很快乐，只是不愿承认”</p>
+<p style="float:right">--《我们》歌词</p>
+
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spring-Boot/" rel="tag"># Spring Boot</a>
+          
+            <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" rel="next" title="线程池使用与实现原理">
+                <i class="fa fa-chevron-left"></i> 线程池使用与实现原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/23/%E8%BA%AB%E6%9C%AA%E5%8A%A8%EF%BC%8C%E5%BF%83%E4%BB%AA%E8%BF%9C-%E5%8D%97%E4%BA%AC/" rel="prev" title="身未动，心仪远--南京">
+                身未动，心仪远--南京 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/author.jpg"
+                alt="Marchen" />
+            
+              <p class="site-author-name" itemprop="name">Marchen</p>
+              <p class="site-description motion-element" itemprop="description">原来我很快乐，只是不愿承认</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Boot优势"><span class="nav-text">Spring Boot优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Boot启动流程"><span class="nav-text">Spring Boot启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SpringApplication-run-Class-clzz，args"><span class="nav-text">SpringApplication.run(Class clzz，args)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#webApplicationType"><span class="nav-text">webApplicationType</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ApplicationContextInitializer"><span class="nav-text">ApplicationContextInitializer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ApplicationListener"><span class="nav-text">ApplicationListener</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#SpringApplication-run-String…-arg"><span class="nav-text">SpringApplication.run(String… arg)</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Enviroment的相关操作"><span class="nav-text">Enviroment的相关操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#getOrCreateEnvironment"><span class="nav-text">getOrCreateEnvironment()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#StandardServletEnviroment"><span class="nav-text">StandardServletEnviroment</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#configureEnvironment-ConfigurableEnvironment-String"><span class="nav-text">configureEnvironment(ConfigurableEnvironment,String[])</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#listeners-environmentPrepared-environment"><span class="nav-text">listeners.environmentPrepared(environment)</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#FileEncodingApplicationListener"><span class="nav-text">FileEncodingApplicationListener</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#AnsiOutputApplicationListener"><span class="nav-text">AnsiOutputApplicationListener</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#ConfigFileApplicationListener"><span class="nav-text">ConfigFileApplicationListener</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Loader-load"><span class="nav-text">Loader.load()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Marchen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.4"></script>
+  <script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.4"></script>
+
+
+  
+
+</body>
+</html>
+<script type="text/javascript" src="/js/src/love.js"></script>
