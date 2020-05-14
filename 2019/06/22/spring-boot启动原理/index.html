@@ -85,15 +85,15 @@
 <meta property="og:url" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="Marchen的博客">
 <meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Spring Boot是现在实现微服务最基础，最受欢迎的一个Spring开发框架，其本身拥有Spring的全部功能，并且提供了很多特性和功能来简化开发人员的开发，深受喜欢，我也是其忠实粉丝之一。 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;如果你问我你为什么会喜欢使用这个框架，我不会告诉你它有如下的">
-<meta property="og:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
-<meta property="og:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/StandardServletEnvironment.png">
+<meta property="og:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="og:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/StandardServletEnvironment.png">
 <meta property="article:published_time" content="2019-06-22T07:05:11.000Z">
-<meta property="article:modified_time" content="2019-07-21T11:14:43.320Z">
+<meta property="article:modified_time" content="2020-05-14T11:45:15.263Z">
 <meta property="article:author" content="Marchen">
 <meta property="article:tag" content="Spring Boot">
 <meta property="article:tag" content="源码">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta name="twitter:image" content="https://marchen-y.github.io/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 
 
 
@@ -374,8 +374,9 @@
 <li>提供了Spring actuator等组件，便于监控和管理应用信息。</li>
 <li>其本身可以和Spring Cloud等框架完美结合，不需要过多的配置等。</li>
 </ul>
+<a id="more"></a>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在了解了Spring Boot框架各种优势之后，自己也使用了很长一段时间的Spring Boot框架，但是有时会报一些奇奇怪怪的问题，自己又不知道从何下手，所以下定决心要认真好好学习学习Spring Boot框架，了解其内部的实现机制，掌握原理和发现它代码写的好的地方，希望能够在开发的道路走远一点。</p>
-<h3 id="Spring-Boot启动流程"><a href="#Spring-Boot启动流程" class="headerlink" title="Spring Boot启动流程"></a>Spring Boot启动流程</h3><p><img src="spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Spring Boot启动流程图"><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述便是ApplicationContext的启动大体流程，大体流程看起来相对比较简单，但其实内部做了很多操作，接下来我们就按照上述流程一一分析Spring Boot的启动流程都做了什么，其中还包括了Spring的相关知识和源码。</p>
+<h3 id="Spring-Boot启动流程"><a href="#Spring-Boot启动流程" class="headerlink" title="Spring Boot启动流程"></a>Spring Boot启动流程</h3><p><img src="/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/SpringBoot%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Spring Boot启动流程图"><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述便是ApplicationContext的启动大体流程，大体流程看起来相对比较简单，但其实内部做了很多操作，接下来我们就按照上述流程一一分析Spring Boot的启动流程都做了什么，其中还包括了Spring的相关知识和源码。</p>
 <h4 id="SpringApplication-run-Class-clzz，args"><a href="#SpringApplication-run-Class-clzz，args" class="headerlink" title="SpringApplication.run(Class clzz，args)"></a>SpringApplication.run(Class clzz，args)</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication</span><br><span class="line">public class ArcherApplication &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        System.setProperty(&quot;es.set.netty.runtime.available.processors&quot;, &quot;false&quot;);</span><br><span class="line">        SpringApplication.run(ArcherApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述方法便是我们使用Spring Boot时的启动方法，@SpringBootApplication注解是Spring Boot框架中最为重要的一个注解，它融合了许多注解的功能，具体的源码如下。</p>
@@ -448,7 +449,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">private ConfigurableEnvironment getOrCreateEnvironment() &#123;</span><br><span class="line">    if (this.environment !&#x3D; null) &#123;</span><br><span class="line">        return this.environment;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;判断应用类型返回相应的环境变量</span><br><span class="line">    switch (this.webApplicationType) &#123;</span><br><span class="line">    case SERVLET:</span><br><span class="line">        return new StandardServletEnvironment();</span><br><span class="line">    case REACTIVE:</span><br><span class="line">        return new StandardReactiveWebEnvironment();</span><br><span class="line">    default:</span><br><span class="line">        return new StandardEnvironment();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;如果在启动SpringApplication设置了Environment属性，则返回开发人员设置的Environment，否则根据应用类型返回相应的Environment实现类，我们说了我们暂只分析webApplicationType为servlet类型的，因此这里创建的是StandardServletEnviroment实例，我们可以StandardServletEnviroment的继承关系图。</p>
-<h5 id="StandardServletEnviroment"><a href="#StandardServletEnviroment" class="headerlink" title="StandardServletEnviroment"></a>StandardServletEnviroment</h5><p><img src="spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/StandardServletEnvironment.png" alt="StandardServletEnviroment类图"></p>
+<h5 id="StandardServletEnviroment"><a href="#StandardServletEnviroment" class="headerlink" title="StandardServletEnviroment"></a>StandardServletEnviroment</h5><p><img src="/2019/06/22/spring-boot%E5%90%AF%E5%8A%A8%E5%8E%9F%E7%90%86/StandardServletEnvironment.png" alt="StandardServletEnviroment类图"></p>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上图便是StandardServletEnviroment的继承关系图，可以看出它拥有PropertyResolver的获取属性功能和Environment的获取profile的功能，上述各个类提供的功能如下：</p>
 <ul>
 <li>PropertyResolver：提供属性访问的功能，这里的属性包括命令行、系统属性、系统环境变量、配置文件等提供的属性。</li>
