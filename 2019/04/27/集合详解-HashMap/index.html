@@ -85,15 +85,15 @@
 <meta property="og:url" content="https://marchen-y.github.io/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/index.html">
 <meta property="og:site_name" content="Marchen的博客">
 <meta property="og:description" content="我们为什么需要剖析HashMap集合类? HashMap和HashTable有什么区别? HashMap中默认的初始化容量和加载因子是多少?如果加载因子设置的太小会出现什么问题?如果设置的太大或出现什么问题? HashMap中保存的元素是否可以包含null?保存的元素是否有序? HashMap是否是线程安全的?如果多线程操作HashMap会出现什么问题?">
-<meta property="og:image" content="https://marchen-y.github.io/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/HashMap_uml.png">
+<meta property="og:image" content="https://marchen-y.github.io/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/HashMap_uml.png">
 <meta property="article:published_time" content="2019-04-27T07:24:29.000Z">
-<meta property="article:modified_time" content="2019-05-07T12:38:11.374Z">
+<meta property="article:modified_time" content="2020-05-18T06:58:40.826Z">
 <meta property="article:author" content="Marchen">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="集合">
 <meta property="article:tag" content="HashMap">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://marchen-y.github.io/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/HashMap_uml.png">
+<meta name="twitter:image" content="https://marchen-y.github.io/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/HashMap_uml.png">
 
 
 
@@ -372,7 +372,8 @@
 <li>HashMap是否是线程安全的?如果多线程操作HashMap会出现什么问题?</li>
 </ul>
 <a id="more"></a>
-<h3 id="HashMap的主要结构"><a href="#HashMap的主要结构" class="headerlink" title="HashMap的主要结构"></a>HashMap的主要结构</h3><p><img src="%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/HashMap_uml.png" alt="HashMap类关系图"></p>
+<h3 id="HashMap的主要结构"><a href="#HashMap的主要结构" class="headerlink" title="HashMap的主要结构"></a>HashMap的主要结构</h3><img src="/2019/04/27/%E9%9B%86%E5%90%88%E8%AF%A6%E8%A7%A3-HashMap/HashMap_uml.png" class title="HashMap关系类图">
+
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class HashMap&lt;K,V&gt; extends AbstractMap&lt;K,V&gt; implements Map&lt;K,V&gt;, Cloneable, Serializable</span><br></pre></td></tr></table></figure>
 
 <p>丛上图可以看出HashMap继承了AbstractMap类、实现了Map接口、Cloneable接口以及Serializable序列化接口。</p>
@@ -616,7 +617,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -638,7 +639,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">23</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

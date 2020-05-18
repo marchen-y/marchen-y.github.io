@@ -85,14 +85,14 @@
 <meta property="og:url" content="https://marchen-y.github.io/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
 <meta property="og:site_name" content="Marchen的博客">
 <meta property="og:description" content="写这篇文章主要因为觉得自己总是只知其然，而不知其所以然！所以才写下这篇文章，其主要目的是帮助自己巩固加深所学习的知识。以后也会写更多这样的文章，希望能够帮到自己和其他人能够知其然，也要知其所以然。 Mybatis流程图上图描述了Mybatis的一个整体流程图，包括从SqlSessionFactory的创建一直到Statment执行Sql，并且返回相关的结果，右边一部分是运行期间要使用到的额外对象。">
-<meta property="og:image" content="https://marchen-y.github.io/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="og:image" content="https://marchen-y.github.io/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 <meta property="article:published_time" content="2018-12-29T09:37:55.000Z">
 <meta property="article:modified_time" content="2019-04-26T12:53:07.307Z">
 <meta property="article:author" content="Marchen">
 <meta property="article:tag" content="Mybatis">
 <meta property="article:tag" content="SqlSessionFactory">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://marchen-y.github.io/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta name="twitter:image" content="https://marchen-y.github.io/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 
 
 
@@ -365,7 +365,7 @@
 
       
         <p>写这篇文章主要因为觉得自己总是只知其然，而不知其所以然！所以才写下这篇文章，其主要目的是帮助自己巩固加深所学习的知识。以后也会写更多这样的文章，希望能够帮到自己和其他人能够知其然，也要知其所以然。</p>
-<h4 id="Mybatis流程图"><a href="#Mybatis流程图" class="headerlink" title="Mybatis流程图"></a>Mybatis流程图</h4><p><img src="Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Myabtis流程图"><br>上图描述了Mybatis的一个整体流程图，包括从SqlSessionFactory的创建一直到Statment执行Sql，并且返回相关的结果，右边一部分是运行期间要使用到的额外对象。后边的分析也会围绕这个流程图进行分析，首先让我们进入到一个环节，创建SqlSessionFactory对象。</p>
+<h4 id="Mybatis流程图"><a href="#Mybatis流程图" class="headerlink" title="Mybatis流程图"></a>Mybatis流程图</h4><p><img src="/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Myabtis流程图"><br>上图描述了Mybatis的一个整体流程图，包括从SqlSessionFactory的创建一直到Statment执行Sql，并且返回相关的结果，右边一部分是运行期间要使用到的额外对象。后边的分析也会围绕这个流程图进行分析，首先让我们进入到一个环节，创建SqlSessionFactory对象。</p>
 <a id="more"></a>
 <h4 id="SqlSessionFactory"><a href="#SqlSessionFactory" class="headerlink" title="SqlSessionFactory"></a>SqlSessionFactory</h4><p>SqlSessionFacory通过SqlSessionFactoryBulid.build(InputStream in)创建,是整个Mybatis框架的入口，是个应用程序级别的对象，什么意思呢？就是整个应用期间只需要创建一个SqlSessionFactory对象，可以使用单例模式创建这个SqlSessionFactory对象。在与Spring整合之后，我们可以不用显示去创建这个对象，Spring会帮我们进行创建维护。以下是对SqlSessionFactory的创建：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">public class SqlSessionFactoryBuilder &#123;</span><br><span class="line"></span><br><span class="line">    public SqlSessionFactory build(InputStream inputStream) &#123;</span><br><span class="line">        return build(inputStream, null, null);</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 通过字节流创建SqlSessionFactory对象。</span><br><span class="line">     * @param inputStream   mybatis-config.xml的字节流</span><br><span class="line">     * @param environment   mybatis-config.xml中的environment要素的id值</span><br><span class="line">     * @param properties    需要加载的properties文件</span><br><span class="line">     * @return SqlSessionFactory</span><br><span class="line">     *&#x2F;</span><br><span class="line">    public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            &#x2F;&#x2F;XMLConfigBuilder是一个解析XML文档的工具类，这里用于解析mybatis-config.xml配置</span><br><span class="line">            XMLConfigBuilder parser &#x3D; new XMLConfigBuilder(inputStream, environment, properties);</span><br><span class="line">            &#x2F;&#x2F;parser.parse()将Mybatis-config.xml、Mapper.xml等解析为Configuration对象</span><br><span class="line">            &#x2F;&#x2F;parser.parse()内部的解析比较复杂，之后会进行详细的分析</span><br><span class="line">            return build(parser.parse());</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            throw ExceptionFactory.wrapException(&quot;Error building SqlSession.&quot;, e);</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            ErrorContext.instance().reset();</span><br><span class="line">            try &#123;</span><br><span class="line">                inputStream.close();</span><br><span class="line">            &#125; catch (IOException e) &#123;</span><br><span class="line">                &#x2F;&#x2F; Intentionally ignore. Prefer previous error.</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public SqlSessionFactory build(Configuration config) &#123;</span><br><span class="line">        return new DefaultSqlSessionFactory(config);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -511,7 +511,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -533,7 +533,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">23</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

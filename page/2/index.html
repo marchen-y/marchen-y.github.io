@@ -271,6 +271,152 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://marchen-y.github.io/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Marchen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Marchen的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" itemprop="url">Mybatis之SqlSession源码解析</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-24T15:32:55+08:00">
+                2019-03-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>之前写过Mybatis之SqlSessionFactory源码解析，但在写这篇文章的时候，发现之前写不是那么好理解，没有给人一种看了就懂的感觉，所以在写这篇文章的时候，会穿插的介绍之前已经分析过的知识和源码，争取这次能够看完这篇文章能够深入了解其内部是怎么实现以及Mybatis的优势。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://marchen-y.github.io/2019/02/23/SpringMVC%E4%B9%8BHandlerMapping%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -657,7 +803,7 @@
       
         
           <p>写这篇文章主要因为觉得自己总是只知其然，而不知其所以然！所以才写下这篇文章，其主要目的是帮助自己巩固加深所学习的知识。以后也会写更多这样的文章，希望能够帮到自己和其他人能够知其然，也要知其所以然。</p>
-<h4 id="Mybatis流程图"><a href="#Mybatis流程图" class="headerlink" title="Mybatis流程图"></a>Mybatis流程图</h4><p><img src="Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Myabtis流程图"><br>上图描述了Mybatis的一个整体流程图，包括从SqlSessionFactory的创建一直到Statment执行Sql，并且返回相关的结果，右边一部分是运行期间要使用到的额外对象。后边的分析也会围绕这个流程图进行分析，首先让我们进入到一个环节，创建SqlSessionFactory对象。</p>
+<h4 id="Mybatis流程图"><a href="#Mybatis流程图" class="headerlink" title="Mybatis流程图"></a>Mybatis流程图</h4><p><img src="/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Myabtis流程图"><br>上图描述了Mybatis的一个整体流程图，包括从SqlSessionFactory的创建一直到Statment执行Sql，并且返回相关的结果，右边一部分是运行期间要使用到的额外对象。后边的分析也会围绕这个流程图进行分析，首先让我们进入到一个环节，创建SqlSessionFactory对象。</p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2018/12/29/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/#more" rel="contents">
@@ -752,7 +898,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -774,7 +920,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">23</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

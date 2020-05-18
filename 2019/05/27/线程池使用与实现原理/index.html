@@ -85,7 +85,7 @@
 <meta property="og:url" content="https://marchen-y.github.io/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="Marchen的博客">
 <meta property="og:description" content="&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;线程池在日常的开发中占据着非常的重要作用，即便我们在日常的开发中没有使用过线程池，也肯定听过周边的开发人员提到过过线程池这个东西。那么，线程池到底是用来做什么？为了解决什么问题呢？ 前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在之前的博客(Synchronized和lock详解)中提到过，线程是最小的运算逻辑单元，合理的使用线程可以充分的利用">
-<meta property="og:image" content="https://marchen-y.github.io/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%B1%BB%E5%9B%BE.png">
+<meta property="og:image" content="https://marchen-y.github.io/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%B1%BB%E5%9B%BE.png">
 <meta property="article:published_time" content="2019-05-27T03:24:28.000Z">
 <meta property="article:modified_time" content="2019-06-10T01:33:02.736Z">
 <meta property="article:author" content="Marchen">
@@ -94,7 +94,7 @@
 <meta property="article:tag" content="线程池">
 <meta property="article:tag" content="ThreadPoolExecutor">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://marchen-y.github.io/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%B1%BB%E5%9B%BE.png">
+<meta name="twitter:image" content="https://marchen-y.github.io/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%B1%BB%E5%9B%BE.png">
 
 
 
@@ -375,7 +375,7 @@
 <p>&nbsp;&nbsp;&nbsp;&nbsp;为了防止出现上述问题，国内著名公司阿里巴巴的编程规范就要求，对于使用到线程创建的都应该使用到线程池，而且应使用ThreadPoolExecutor来进行线程池的创建，至于为什么需要使用ThreadPoolExecutor来创建，这个我们之后在详细说明。阿里巴巴公司的编码规范要求必须使用线程池创建和管理线程，足以说明了线程池的重要性，所以使用和掌握线程池很重要。接下来，我会从总体到细致的方式，来共同学习线程池。</p>
 <a id="more"></a>
 
-<h3 id="总体的架构"><a href="#总体的架构" class="headerlink" title="总体的架构"></a>总体的架构</h3><h4 id="线程池类图"><a href="#线程池类图" class="headerlink" title="线程池类图"></a>线程池类图</h4><p><img src="%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%B1%BB%E5%9B%BE.png" alt="线程池类图"></p>
+<h3 id="总体的架构"><a href="#总体的架构" class="headerlink" title="总体的架构"></a>总体的架构</h3><h4 id="线程池类图"><a href="#线程池类图" class="headerlink" title="线程池类图"></a>线程池类图</h4><p><img src="/2019/05/27/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%B1%BB%E5%9B%BE.png" alt="线程池类图"></p>
 <ul>
 <li>Executor是线程池的最顶层接口，类似于Spring中BeanFactory的作用，只定义了提交线程任务的方法。</li>
 <li>ExecutorService是Executor的一个实现，它在Executor的接口上定义了管理线程池和更多样化提交线程任务的方法，包括关闭线程池(shutdown)、终止线程池(awaitTermination)、唤醒线程池中的线程等方法。</li>
@@ -442,7 +442,7 @@
 <p>&nbsp;&nbsp;&nbsp;&nbsp;execute(Runnable runnable)方法是最顶层的Executor声明的方法，具体的实现在ThreadPoolExecutor中，之后再源码分析中会具体分析这个方法，这里先做个了解，它可以用做提交方法，但不会返回结果。</p>
 <h5 id="submit"><a href="#submit" class="headerlink" title="submit"></a>submit</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public static &lt;V&gt; V submit(Callable&lt;V&gt; runnable) throws ExecutionException, InterruptedException &#123;</span><br><span class="line">    Future&lt;V&gt; future &#x3D; exeuctor.submit(runnable);</span><br><span class="line">    while(true)&#123;</span><br><span class="line">        if(future.isDone())&#123;</span><br><span class="line">            return future.get();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;submit(Callable<V> runnable)/submit(Runnable runnable)也被用作提交线程任务，和execute方法的区别是submit可以返回结果Futrue对象，Future可以使用get()方法获取线程的执行结果，但是get()方法会阻塞获取，因此慎用。submit方法内部也是通过调用execute方法实现，具体的代码分析我们在源码分析章节再做具体的分析。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;submit(Callable<V> runnable)/submit(Runnable runnable)也被用作提交线程任务，和execute方法的区别是submit可以返回结果Futrue对象，Future可以使用get()方法获取线程的执行结果，但是get()方法会阻塞获取，因此慎用。submit方法内部也是通过调用execute方法实现，具体的代码分析我们在源码分析章节再做具体的分析。</V></p>
 <h3 id="源码实现"><a href="#源码实现" class="headerlink" title="源码实现"></a>源码实现</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;ThreadPoolExecutor是线程池的最终实现，之前我们在介绍线程池使用的时候说过ThreadPoolExecutor的入参，因此我们在开始的时候，先介绍下ThreadPoolExecutor的核心属性。</p>
 <h4 id="ThreadPoolExecutor核心属性"><a href="#ThreadPoolExecutor核心属性" class="headerlink" title="ThreadPoolExecutor核心属性"></a>ThreadPoolExecutor核心属性</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;线程的状态和数量的表示</span><br><span class="line">private final AtomicInteger ctl &#x3D; new AtomicInteger(ctlOf(RUNNING, 0));</span><br><span class="line">&#x2F;&#x2F;表示线程数量的二进制位数</span><br><span class="line">private static final int COUNT_BITS &#x3D; Integer.SIZE - 3;</span><br><span class="line">&#x2F;&#x2F;线程池最大容量</span><br><span class="line">private static final int CAPACITY   &#x3D; (1 &lt;&lt; COUNT_BITS) - 1;</span><br><span class="line">&#x2F;&#x2F;线程池当前状态</span><br><span class="line">private static final int RUNNING    &#x3D; -1 &lt;&lt; COUNT_BITS;</span><br><span class="line">private static final int SHUTDOWN   &#x3D;  0 &lt;&lt; COUNT_BITS;</span><br><span class="line">private static final int STOP       &#x3D;  1 &lt;&lt; COUNT_BITS;</span><br><span class="line">private static final int TIDYING    &#x3D;  2 &lt;&lt; COUNT_BITS;</span><br><span class="line">private static final int TERMINATED &#x3D;  3 &lt;&lt; COUNT_BITS;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;阻塞队列</span><br><span class="line">private final BlockingQueue&lt;Runnable&gt; workQueue;</span><br><span class="line">&#x2F;&#x2F;可重入锁</span><br><span class="line">private final ReentrantLock mainLock &#x3D; new ReentrantLock();</span><br><span class="line">&#x2F;&#x2F;执行线程任务的工作线程</span><br><span class="line">private final HashSet&lt;Worker&gt; workers &#x3D; new HashSet&lt;Worker&gt;();</span><br><span class="line">&#x2F;&#x2F;条件变量</span><br><span class="line">private final Condition termination &#x3D; mainLock.newCondition();</span><br><span class="line"></span><br><span class="line">private int largestPoolSize;</span><br><span class="line">&#x2F;&#x2F;完成的线程任务数量</span><br><span class="line">private long completedTaskCount;</span><br><span class="line">&#x2F;&#x2F;线程创建工厂</span><br><span class="line">private volatile ThreadFactory threadFactory;</span><br><span class="line">&#x2F;&#x2F;拒绝策略</span><br><span class="line">private volatile RejectedExecutionHandler handler;</span><br><span class="line">&#x2F;&#x2F;线程的最大的空闲时间</span><br><span class="line">private volatile long keepAliveTime;</span><br><span class="line">&#x2F;&#x2F;是否允许核心线程回收</span><br><span class="line">private volatile boolean allowCoreThreadTimeOut;</span><br><span class="line">&#x2F;&#x2F;核心线程数量</span><br><span class="line">private volatile int corePoolSize;</span><br><span class="line">最大线程数量</span><br><span class="line">private volatile int maximumPoolSize;</span><br><span class="line">&#x2F;&#x2F;默认的拒绝策略是抛出异常</span><br><span class="line">private static final RejectedExecutionHandler defaultHandler &#x3D;</span><br><span class="line">    new AbortPolicy();</span><br><span class="line"></span><br><span class="line">private static final RuntimePermission shutdownPerm &#x3D;</span><br><span class="line">    new RuntimePermission(&quot;modifyThread&quot;);</span><br><span class="line"></span><br><span class="line">private final AccessControlContext acc;</span><br></pre></td></tr></table></figure>
 
@@ -651,7 +651,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -673,7 +673,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">23</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

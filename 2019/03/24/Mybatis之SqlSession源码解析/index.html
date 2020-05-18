@@ -85,14 +85,14 @@
 <meta property="og:url" content="https://marchen-y.github.io/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
 <meta property="og:site_name" content="Marchen的博客">
 <meta property="og:description" content="之前写过Mybatis之SqlSessionFactory源码解析，但在写这篇文章的时候，发现之前写不是那么好理解，没有给人一种看了就懂的感觉，所以在写这篇文章的时候，会穿插的介绍之前已经分析过的知识和源码，争取这次能够看完这篇文章能够深入了解其内部是怎么实现以及Mybatis的优势。">
-<meta property="og:image" content="https://marchen-y.github.io/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="og:image" content="https://marchen-y.github.io/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 <meta property="article:published_time" content="2019-03-24T07:32:55.000Z">
 <meta property="article:modified_time" content="2019-08-04T13:41:06.177Z">
 <meta property="article:author" content="Marchen">
 <meta property="article:tag" content="Mybatis">
 <meta property="article:tag" content="SqlSession">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://marchen-y.github.io/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta name="twitter:image" content="https://marchen-y.github.io/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 
 
 
@@ -367,7 +367,7 @@
         <p>之前写过Mybatis之SqlSessionFactory源码解析，但在写这篇文章的时候，发现之前写不是那么好理解，没有给人一种看了就懂的感觉，所以在写这篇文章的时候，会穿插的介绍之前已经分析过的知识和源码，争取这次能够看完这篇文章能够深入了解其内部是怎么实现以及Mybatis的优势。</p>
 <a id="more"></a>
 
-<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>我们继续借用上次使用过的Mybatis整体的一个流程图，大体的讲下每个节点被用作什么，之后再详细的分析每个节点的作用以及实现原理。<br><img src="Mybatis%E4%B9%8BSqlSessionFactory%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Myabtis流程图"></p>
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>我们继续借用上次使用过的Mybatis整体的一个流程图，大体的讲下每个节点被用作什么，之后再详细的分析每个节点的作用以及实现原理。<br><img src="/2019/03/24/Mybatis%E4%B9%8BSqlSession%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Mybatis%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Myabtis流程图"></p>
 <ol>
 <li>SqlSessionFactoryBuilder.build(in)： MyBatis整体入口,通过该方法会最终构建一个SqlSessionFactory(默认是DefaultSqlSessionFactory)实例，SqlSessionFactory用于获取SqlSession，并且SqlSessionFactory中包含着一个非常重要的属性-<strong>Configuration</strong>实例，Configuration实例贯穿着整个MyBatis框架，这里先了解下，之后会详解Configuation的功能和特点。<br><strong>重点：</strong> Configuration</li>
 <li>factory.openSession()： 获取SqlSession实例，该方法主要是通过SqlSessionFactory()实例获取到一个用于执行具体的SQL方法的对象-DefaultSqlSession。SqlSession实例包含了Configuration实例，该连接的事务级别以及执行该次方法的执行器Executor。<br> Executor(执行器)：用于调用具体的方法的顶层接口，提供包括查询、更新、事务提交、回滚等方法。在SqlSession实例中会根据入参exeType创建相应的Executor执行器,包括SimpleExecutor、ReuseExecutor、BatchExecutor执行器，从这可以看出Executor采用了策略模式实现。</li>
@@ -583,7 +583,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -605,7 +605,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">23</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
