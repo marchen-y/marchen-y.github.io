@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="技术,内存溢出,内存泄露," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="1.问题和思路&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在最近的项目中遇到一个非常棘手的问题，系统在使用一段时间之后，就会直接down掉，经过排查error日志，发现了内存溢出的报错，报错如下:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存溢出问题排查(spring jpa缓存溢出)">
+<meta property="og:url" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/index.html">
+<meta property="og:site_name" content="Marchen的博客">
+<meta property="og:description" content="1.问题和思路&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;在最近的项目中遇到一个非常棘手的问题，系统在使用一段时间之后，就会直接down掉，经过排查error日志，发现了内存溢出的报错，报错如下:">
+<meta property="og:image" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/GC_error.png">
+<meta property="og:image" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/heap_set.png">
+<meta property="og:image" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/hprofiler.png">
+<meta property="og:image" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/jpa%E7%BC%93%E5%AD%98%E9%85%8D%E7%BD%AE.png">
+<meta property="og:image" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/Segment.png">
+<meta property="og:image" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/jpa%E7%BC%93%E5%AD%98%E9%85%8D%E7%BD%AE.png">
+<meta property="article:published_time" content="2020-06-23T02:15:11.000Z">
+<meta property="article:modified_time" content="2020-06-30T13:46:31.887Z">
+<meta property="article:author" content="Marchen">
+<meta property="article:tag" content="技术,内存溢出,内存泄露">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/GC_error.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"always","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://marchen-y.github.io/2020/06/23/内存溢出问题排查-spring-jpa缓存溢出/"/>
+
+
+
+
+
+  <title>内存溢出问题排查(spring jpa缓存溢出) | Marchen的博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Marchen的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">分享一切喜欢的事物</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-schedule">
+          <a href="/schedule/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            日程表
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://marchen-y.github.io/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Marchen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Marchen的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">内存溢出问题排查(spring jpa缓存溢出)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-06-23T10:15:11+08:00">
+                2020-06-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="1-问题和思路"><a href="#1-问题和思路" class="headerlink" title="1.问题和思路"></a>1.问题和思路</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在最近的项目中遇到一个非常棘手的问题，系统在使用一段时间之后，就会直接down掉，经过排查error日志，发现了内存溢出的报错，报错如下:</p>
+<img src="/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/GC_error.png" class title="GC内存溢出">
+<a id="more"></a>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上边的报错的指的是内存频繁的GC垃圾回收但不能达到预期的回收效果，从而导致抛出内存溢出异常。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;刚开始以为是堆内存配置的比较小，查看了启动命令行参数，发现-Xms:256(堆内存最小的分配空间),-Xmx:512M(堆内存最大的分配空间)，这对于一个数据量在几十万的系统来说，确实设置的比较小，所以调整了-Xms:2048，-Xmx:2048。<strong>在生产环境中，最好设置-Xms和-Xmx参数为一致的，这样可以避免内存扩展而造成的系统功能延迟。</strong> 但是上述的命令经过一段时间之后，发现还是会出现内存溢出的问题。</p>
+<img src="/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/heap_set.png" class title="GC堆内存设置">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;生产环境中一般会在启动项中添加-XX:HeapDumpOnOutOfMemoryError和-XX:HeapDumpPath,这两个参数在发生内存溢出时会打印当前的堆栈信息到-XX:HeapDumpPath指定的路径中，文件名格式一般为java_pid进程号.hprof，将该文件导出到本地种使用jprofiler进行解析和排查，分析的结果如下：</p>
+<img src="/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/hprofiler.png" class title="jprofiler分析">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;从上图发现是因为使用hibernate的缓存执行计划太多而导致的内存溢出，已经占用了内存的92%，网上查询了下发现是因为配置了 spring.jpa.properties.hibernate.query.plan_cache_max_size和<br>spring.jpa.properties.hibernate.query.plan_parameter_metadata_max_size属性，配置如下：</p>
+<img src="/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/jpa%E7%BC%93%E5%AD%98%E9%85%8D%E7%BD%AE.png" class title="jpa缓存配置">
+<p>查询资料需要将上述两个属性设置较小，默认为2048，我这里改为256，这次系统时间坚持的比较长了点，但是最终还是会出现内存溢出的问题。然后继续将堆内存快照的文件拿出来重新分析，还是出现BoundedConcurrentHashMap的内存占用率较高，总是这个导致内存溢出肯定有问题，要想彻底解决这个问题，就必须了解到BoundedConcurrentHashMap源码。</p>
+<h3 id="2-BoundedConcurrentHashMap"><a href="#2-BoundedConcurrentHashMap" class="headerlink" title="2.BoundedConcurrentHashMap"></a>2.BoundedConcurrentHashMap</h3><h4 id="2-1-BoundedConcurrentHashMap特性"><a href="#2-1-BoundedConcurrentHashMap特性" class="headerlink" title="2.1. BoundedConcurrentHashMap特性"></a>2.1. BoundedConcurrentHashMap特性</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BoundeConcurrentHashMap和Hastable类很相似，BoundedConcurrentHashMap提供了HashTable所有的功能规范，同事也针对HashTable做了补充。</p>
+<ol>
+<li>HastTabel的get方法加了synchorizd同步方法的，但BoundedConcurrentHashMap的get方法没有Synchronized同步标志，所以有可能检索出的数据不适最新更新的数据。</li>
+<li>BoundedConcurrentHashMap支持并发最大的线程数设置，通过将Map中的table[]数组按照concurrentLevel属性设置划分为多个段，多个段可以做到避免线程竞争。类似于java1.7的CourrentHashMap类。</li>
+<li>BoundedConcurrentHashMap提供了缓存机制和淘汰策略，可以针对的实际场景选择相应的淘汰机制，正式由于该属性，Hibernate使用BoundedConcurrentHashMap作为缓存。<h4 id="2-2-BoundedConcurrentHashMap简单的源码分析"><a href="#2-2-BoundedConcurrentHashMap简单的源码分析" class="headerlink" title="2.2 BoundedConcurrentHashMap简单的源码分析"></a>2.2 BoundedConcurrentHashMap简单的源码分析</h4><h5 id="2-2-1-BoundedConcurrentHashMap的初始化和属性值"><a href="#2-2-1-BoundedConcurrentHashMap的初始化和属性值" class="headerlink" title="2.2.1 BoundedConcurrentHashMap的初始化和属性值"></a>2.2.1 BoundedConcurrentHashMap的初始化和属性值</h5>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;向学习其他的集合类型一样，分析源码的时候首先看它支持哪些属性和其初始化方法，方法如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">public class BoundedConcurrentHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&gt;</span><br><span class="line">		implements ConcurrentMap&lt;K, V&gt;, Serializable &#123;</span><br><span class="line">private static final long serialVersionUID &#x3D; 7249069246763182397L;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;默认最大能容纳的元素数量</span><br><span class="line">static final int DEFAULT_MAXIMUM_CAPACITY &#x3D; 512;</span><br><span class="line">&#x2F;&#x2F;默认加载因子</span><br><span class="line">static final float DEFAULT_LOAD_FACTOR &#x3D; 0.75f;</span><br><span class="line">&#x2F;&#x2F;默认估计支持的并发线程数量</span><br><span class="line">static final int DEFAULT_CONCURRENCY_LEVEL &#x3D; 16;</span><br><span class="line">&#x2F;&#x2F;Map集合最大容纳元素数量</span><br><span class="line">static final int MAXIMUM_CAPACITY &#x3D; 1 &lt;&lt; 30;</span><br><span class="line">&#x2F;&#x2F;预估最大支持的并发线程数量</span><br><span class="line">static final int MAX_SEGMENTS &#x3D; 1 &lt;&lt; 16; &#x2F;&#x2F; slightly conservative</span><br><span class="line"></span><br><span class="line">static final int RETRIES_BEFORE_LOCK &#x3D; 2;</span><br><span class="line"></span><br><span class="line">&#x2F;* ---------------- Fields -------------- *&#x2F;</span><br><span class="line">&#x2F;&#x2F;该字段主要作用是标志段的大小，用于快速的定位到插入的entry存在哪个段中</span><br><span class="line">final int segmentMask;</span><br><span class="line">&#x2F;&#x2F;插入段中的偏移量</span><br><span class="line">final int segmentShift;</span><br><span class="line">&#x2F;&#x2F;Map集合中的段数组，充当了分段锁的角色，继承了ReentranLock</span><br><span class="line">final Segment&lt;K, V&gt;[] segments;</span><br><span class="line"></span><br><span class="line">transient Set&lt;K&gt; keySet;</span><br><span class="line">transient Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet;</span><br><span class="line">transient Collection&lt;V&gt; values;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * BoundedConcurrentHashMap的初始化方法</span><br><span class="line"> * capacity：指定该集合现支持元素上限个数</span><br><span class="line"> * concurrencyLevel：指定该集合预估支持的并发线程数，实际不一定是该值。</span><br><span class="line"> * evictionStrategy: 指定集合中元素淘汰的算法</span><br><span class="line"> * evictionListener: 指定监听器</span><br><span class="line"> *&#x2F;</span><br><span class="line">public BoundedConcurrentHashMap(</span><br><span class="line">        int capacity, int concurrencyLevel,</span><br><span class="line">        Eviction evictionStrategy, EvictionListener&lt;K, V&gt; evictionListener) &#123;</span><br><span class="line">    if ( capacity &lt; 0 || concurrencyLevel &lt;&#x3D; 0 ) &#123;</span><br><span class="line">        throw new IllegalArgumentException();</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;设置预估支持并发线程的数量，选择capcaity&#x2F;2和concurrencytLevel中最小的</span><br><span class="line">    concurrencyLevel &#x3D; Math.min( capacity &#x2F; 2, concurrencyLevel ); &#x2F;&#x2F; concurrencyLevel cannot be &gt; capacity&#x2F;2</span><br><span class="line">    &#x2F;&#x2F;设置的并发线程数量不能小于1</span><br><span class="line">    concurrencyLevel &#x3D; Math.max( concurrencyLevel, 1 );</span><br><span class="line">    &#x2F;&#x2F;判断容纳的元素上限个数是否满足</span><br><span class="line">    if ( capacity &lt; concurrencyLevel * 2 &amp;&amp; capacity !&#x3D; 1 ) &#123;</span><br><span class="line">        throw new IllegalArgumentException( &quot;Maximum capacity has to be at least twice the concurrencyLevel&quot; );</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;判断元素淘汰算法和监听器是否为空，若为空抛出异常</span><br><span class="line">    if ( evictionStrategy &#x3D;&#x3D; null || evictionListener &#x3D;&#x3D; null ) &#123;</span><br><span class="line">        throw new IllegalArgumentException();</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;因为预估支持的并发线程数依赖于段的角色，因此预估的并发线程数应小于默认最大的段大小</span><br><span class="line">    if ( concurrencyLevel &gt; MAX_SEGMENTS ) &#123;</span><br><span class="line">        concurrencyLevel &#x3D; MAX_SEGMENTS;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;设置segment(段)大小和偏移量</span><br><span class="line">    int sshift &#x3D; 0;</span><br><span class="line">    int ssize &#x3D; 1;</span><br><span class="line">    &#x2F;&#x2F;满足segment(段)的大小小于设置的线程并发数，并且接近于2的次方的一个值。</span><br><span class="line">    while ( ssize &lt; concurrencyLevel ) &#123;</span><br><span class="line">        ++sshift;</span><br><span class="line">        ssize &lt;&lt;&#x3D; 1;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;计算段移位量，用于与hash进行移位运算，找到hash所在的段的位置</span><br><span class="line">    segmentShift &#x3D; 32 - sshift;</span><br><span class="line">    segmentMask &#x3D; ssize - 1;</span><br><span class="line">    this.segments &#x3D; Segment.newArray( ssize );</span><br><span class="line">    &#x2F;&#x2F;如果设置的容量大于最大的容量值，则将最大容量值赋予容量</span><br><span class="line">    if ( capacity &gt; MAXIMUM_CAPACITY ) &#123;</span><br><span class="line">        capacity &#x3D; MAXIMUM_CAPACITY;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;设置每个段可以容纳的元素，满足小于capacity&#x2F;sszie并且接近于2的次方。</span><br><span class="line">    int c &#x3D; capacity &#x2F; ssize;</span><br><span class="line">    int cap &#x3D; 1;</span><br><span class="line">    while ( cap &lt; c ) &#123;</span><br><span class="line">        cap &lt;&lt;&#x3D; 1;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;初始化每个段的大小</span><br><span class="line">    for ( int i &#x3D; 0; i &lt; this.segments.length; ++i ) &#123;</span><br><span class="line">        this.segments[i] &#x3D; new Segment&lt;K, V&gt;( cap, c, DEFAULT_LOAD_FACTOR, evictionStrategy, evictionListener );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;从上述方法可以看到BoundedConcurrentHashMap是一个支持固定元素数目，并且支持根据Eviction和EvictionListener来对过期的元素进行淘汰，并且支持分段锁，降低锁的竞争，可以完美的充当一个缓存的内部数据结构来。我们抱着学习的态度再继续深入下BoundedConcurrentHashMap的Segment创建，插入和获取方法。<h5 id="2-2-2-Semgent的初始化"><a href="#2-2-2-Semgent的初始化" class="headerlink" title="2.2.2 Semgent的初始化"></a>2.2.2 Semgent的初始化</h5></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">static final class Segment&lt;K, V&gt; extends ReentrantLock &#123;</span><br><span class="line"></span><br><span class="line">    private static final long serialVersionUID &#x3D; 2249069246763182397L;</span><br><span class="line">    &#x2F;&#x2F;当前段容纳的元素数量</span><br><span class="line">    transient volatile int count;</span><br><span class="line">    &#x2F;&#x2F;修改的次数</span><br><span class="line">    transient int modCount;</span><br><span class="line">    &#x2F;&#x2F;阈值</span><br><span class="line">    transient int threshold;</span><br><span class="line">    &#x2F;&#x2F;元素数组</span><br><span class="line">    transient volatile HashEntry&lt;K, V&gt;[] table;</span><br><span class="line">    &#x2F;&#x2F;加载因子</span><br><span class="line">    final float loadFactor;</span><br><span class="line">    &#x2F;&#x2F;段的初始大小</span><br><span class="line">    final int evictCap;</span><br><span class="line">    &#x2F;&#x2F;元素淘汰策略</span><br><span class="line">    transient final EvictionPolicy&lt;K, V&gt; eviction;</span><br><span class="line">    &#x2F;&#x2F;监听器</span><br><span class="line">    transient final EvictionListener&lt;K, V&gt; evictionListener;</span><br><span class="line"></span><br><span class="line">    Segment(int cap, int evictCap, float lf, Eviction es, EvictionListener&lt;K, V&gt; listener) &#123;</span><br><span class="line">        loadFactor &#x3D; lf;</span><br><span class="line">        this.evictCap &#x3D; evictCap;</span><br><span class="line">        eviction &#x3D; es.make( this, evictCap, lf );</span><br><span class="line">        evictionListener &#x3D; listener;</span><br><span class="line">        setTable( HashEntry.&lt;K, V&gt;newArray( cap ) );</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F;设置段中元素数组和阈值</span><br><span class="line">    void setTable(HashEntry&lt;K, V&gt;[] newTable) &#123;</span><br><span class="line">        threshold &#x3D; (int) ( newTable.length * loadFactor );</span><br><span class="line">        table &#x3D; newTable;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;上述的初始化方法没有什么复杂的地方，唯一可能存在疑问的是es.es.make( this, evictCap, lf )方法，该方法用于创建元素淘汰的策略，BoundedConcurrentHashMap实现了3种EvictionPolicy策略，如下：</p>
+<ul>
+<li>NullEvictionPolicy: 不做任何操作</li>
+<li>LRU：最近最少使用的淘汰</li>
+<li>LIRS：一种相对于LRU算法考虑到更全面的缓存算法，具体的可以查看<a href="[链接网址](https://cloud.tencent.com/developer/article/1464670)" title="缓存淘汰算法LIRS原理与实现">缓存淘汰算法LIRS原理与实现</a></li>
+</ul>
+<h5 id="2-2-3-Segment的插入"><a href="#2-2-3-Segment的插入" class="headerlink" title="2.2.3 Segment的插入"></a>2.2.3 Segment的插入</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;插入元素，若元素的值为空，则抛出异常</span><br><span class="line">public V put(K key, V value) &#123;</span><br><span class="line">    if ( value &#x3D;&#x3D; null ) &#123;</span><br><span class="line">        throw new NullPointerException();</span><br><span class="line">    &#125;</span><br><span class="line">    int hash &#x3D; hash( key.hashCode() );</span><br><span class="line">    &#x2F;&#x2F;获取该元素的hash值所对应的段，然后调用段的put方法，从而减少了锁的竞争。</span><br><span class="line">    return segmentFor( hash ).put( key, hash, value, false );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * 段中插入元素</span><br><span class="line"> * key: 元素key</span><br><span class="line"> * hash: 元素key的hash值</span><br><span class="line"> * value： 元素的value</span><br><span class="line"> * onlyIfAbsent：是否需要替换已存在元素的值</span><br><span class="line"> *&#x2F;</span><br><span class="line">V put(K key, int hash, V value, boolean onlyIfAbsent) &#123;</span><br><span class="line">    lock();</span><br><span class="line">    Set&lt;HashEntry&lt;K, V&gt;&gt; evicted &#x3D; null;</span><br><span class="line">    try &#123;</span><br><span class="line">        int c &#x3D; count;</span><br><span class="line">        &#x2F;&#x2F;判断段中的元素是否已超过阈值并且未知道扩容策略，则调用rehash方法进行扩容。</span><br><span class="line">        if ( c++ &gt; threshold &amp;&amp; eviction.strategy() &#x3D;&#x3D; Eviction.NONE ) &#123;</span><br><span class="line">            rehash();</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F;遍历段中的元素信息，如果存在相同的元素，则赋值给e，否则返回空。</span><br><span class="line">        HashEntry&lt;K, V&gt;[] tab &#x3D; table;</span><br><span class="line">        int index &#x3D; hash &amp; tab.length - 1;</span><br><span class="line">        HashEntry&lt;K, V&gt; first &#x3D; tab[index];</span><br><span class="line">        HashEntry&lt;K, V&gt; e &#x3D; first;</span><br><span class="line">        while ( e !&#x3D; null &amp;&amp; ( e.hash !&#x3D; hash || !key.equals( e.key ) ) ) &#123;</span><br><span class="line">            e &#x3D; e.next;</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F;判断段中已是否存在该元素，若存在，则调用缓存算法策略重新计算缓存的元素内容。</span><br><span class="line">        V oldValue;</span><br><span class="line">        if ( e !&#x3D; null ) &#123;</span><br><span class="line">            oldValue &#x3D; e.value;</span><br><span class="line">            if ( !onlyIfAbsent ) &#123;</span><br><span class="line">                e.value &#x3D; value;</span><br><span class="line">                &#x2F;&#x2F;计算缓存元素的内容</span><br><span class="line">                eviction.onEntryHit( e );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        else &#123;</span><br><span class="line">            oldValue &#x3D; null;</span><br><span class="line">            ++modCount;</span><br><span class="line">            &#x2F;&#x2F;如果段内元素的数量大于初始化的上限并且淘汰策略不是Eviction.NONE时，执行eviction.execute()方法淘汰掉元素。</span><br><span class="line">            count &#x3D; c; &#x2F;&#x2F; write-volatile</span><br><span class="line">            if ( eviction.strategy() !&#x3D; Eviction.NONE ) &#123;</span><br><span class="line">                if ( c &gt; evictCap ) &#123;</span><br><span class="line">                    &#x2F;&#x2F; remove entries;lower count</span><br><span class="line">                    evicted &#x3D; eviction.execute();</span><br><span class="line">                    &#x2F;&#x2F; re-read first</span><br><span class="line">                    first &#x3D; tab[index];</span><br><span class="line">                &#125;</span><br><span class="line">                &#x2F;&#x2F;创建新的元素</span><br><span class="line">                tab[index] &#x3D; eviction.createNewEntry( key, hash, first, value );</span><br><span class="line">                &#x2F;&#x2F;重新计算新加入元素的淘汰机制</span><br><span class="line">                Set&lt;HashEntry&lt;K, V&gt;&gt; newlyEvicted &#x3D; eviction.onEntryMiss( tab[index] );</span><br><span class="line">                if ( !newlyEvicted.isEmpty() ) &#123;</span><br><span class="line">                    if ( evicted !&#x3D; null ) &#123;</span><br><span class="line">                        evicted.addAll( newlyEvicted );</span><br><span class="line">                    &#125;</span><br><span class="line">                    else &#123;</span><br><span class="line">                        evicted &#x3D; newlyEvicted;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            else &#123;</span><br><span class="line">                tab[index] &#x3D; eviction.createNewEntry( key, hash, first, value );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return oldValue;</span><br><span class="line">    &#125;</span><br><span class="line">    finally &#123;</span><br><span class="line">        unlock();</span><br><span class="line">        notifyEvictionListener( evicted );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BoundedConcurrentHashMap的插入实际是Segment元素的插入，在Segment对象中插入元素时，首先需要获取到锁，这样对于一个BoundedConcurrentHashMap对象含有多个Segment对象可以有效的避免在并发环境中的锁竞争问题。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Segment在插入元素的时候，需要考虑以下两种情况：</p>
+<ol>
+<li>若不存在淘汰机制，则在插入元素的时候需要判断Segment中的元素数量是否已超过初设的数量，若超过则进行扩容，扩容是将Segment中的table数组大小扩容一倍，然后重新分配之前已存在的元素到新的table数组中</li>
+<li>若存在淘汰机制，并且Segment中的元素数量已超过初设的数量，则调用淘汰算法机制的execute()方法，排查掉不满足条件的元素。然后再继续创建新的元素插入到Segment中，然后再重新计算段中元素是否满足淘汰机制。</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;经过第二种情况设置淘汰算法策略，则会实现缓存所拥有的的特性，而像Hibernate中则就是设置了淘汰策略-LIRS, 从而实现的查询语句和参数的缓存。</p>
+<h5 id="2-2-4-Segment的获取"><a href="#2-2-4-Segment的获取" class="headerlink" title="2.2.4 Segment的获取"></a>2.2.4 Segment的获取</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;从Map集合中通过key值获取结果</span><br><span class="line">public V get(Object key) &#123;</span><br><span class="line">    int hash &#x3D; hash( key.hashCode() );</span><br><span class="line">    &#x2F;&#x2F;获取到Segment，然后从其中获取到结果</span><br><span class="line">    return segmentFor( hash ).get( key, hash );</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;**</span><br><span class="line"> * 从Segment中获取结果</span><br><span class="line"> * key： Map集合中的键</span><br><span class="line"> * hash: hash值</span><br><span class="line"> *&#x2F;</span><br><span class="line">V get(Object key, int hash) &#123;</span><br><span class="line">    int c &#x3D; count;</span><br><span class="line">    &#x2F;&#x2F;判断段中的元素是否为0，若为0则直接返回null，标识Segment中不存在元素。</span><br><span class="line">    if ( c !&#x3D; 0 ) &#123; &#x2F;&#x2F; read-volatile</span><br><span class="line">        V result &#x3D; null;</span><br><span class="line">        &#x2F;&#x2F;根据hash值获取定位到table中的位置。</span><br><span class="line">        HashEntry&lt;K, V&gt; e &#x3D; getFirst( hash );</span><br><span class="line">        while ( e !&#x3D; null ) &#123;</span><br><span class="line">            if ( e.hash &#x3D;&#x3D; hash &amp;&amp; key.equals( e.key ) ) &#123;</span><br><span class="line">                V v &#x3D; e.value;</span><br><span class="line">                if ( v !&#x3D; null ) &#123;</span><br><span class="line">                    result &#x3D; v;</span><br><span class="line">                    break;</span><br><span class="line">                &#125;</span><br><span class="line">                &#x2F;&#x2F;如果Segment中不存在元素，则通过加锁重新获取下元素，查看是否能获取到元素，这部主要是弥补之前获取元素的时候，Map集合正在插入。</span><br><span class="line">                else &#123;</span><br><span class="line">                    result &#x3D; readValueUnderLock( e );</span><br><span class="line">                    break;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            e &#x3D; e.next;</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F;如果Segment存在该元素，则需要改变该元素在淘汰策略中的重要性，为之后的插入元素淘汰时做铺垫。</span><br><span class="line">        if ( result !&#x3D; null ) &#123;</span><br><span class="line">            if ( eviction.onEntryHit( e ) ) &#123;</span><br><span class="line">                Set&lt;HashEntry&lt;K, V&gt;&gt; evicted &#x3D; attemptEviction( false );</span><br><span class="line">                notifyEvictionListener( evicted );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return result;</span><br><span class="line">    &#125;</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BoundedConcurrentHashMap元素的获取非常简单，只是在传统的元素获取上添加了淘汰策略机制，对命中的元素提高其重要性。</p>
+<h5 id="2-2-5-EvictionPolicy"><a href="#2-2-5-EvictionPolicy" class="headerlink" title="2.2.5 EvictionPolicy"></a>2.2.5 EvictionPolicy</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EvictionPolicy是BoundedConcurrentHashMap最重要的一个特性，用于淘汰集合中不重要的元素。BoundedConcurrentHashMap中实现了3个EvictionPolicy，包括LRU和LIRS,在Hibernate中使用LIRS淘汰算法。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;我们分析了造成内存溢出的实例BoundedConcurrentHashMap的实现，但发现如果设置了缓存的算法淘汰机制，则应该不会出现BoundedConcurrentHashMap的内存太大问题，我们再看看它的上级调用链-QueryPlanCache.</p>
+<h3 id="3-QueryPlanCache"><a href="#3-QueryPlanCache" class="headerlink" title="3.QueryPlanCache"></a>3.QueryPlanCache</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;QueryPlanCache充当查询计划以及查询元数据的缓存。使用BoundedConcurrentHashMap作为底层实现，在QueryPlanCache的初始化方法总实例化了BoundedConcurrentHashMap。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">public QueryPlanCache(final SessionFactoryImplementor factory) &#123;</span><br><span class="line">    this.factory &#x3D; factory;</span><br><span class="line">    &#x2F;&#x2F;获取查询参数元数据支持元素的上限值(hibernate.query.plan_parameter_metadata_max_size)</span><br><span class="line">    Integer maxParameterMetadataCount &#x3D; ConfigurationHelper.getInteger(</span><br><span class="line">            Environment.QUERY_PLAN_CACHE_PARAMETER_METADATA_MAX_SIZE,</span><br><span class="line">            factory.getProperties()</span><br><span class="line">    );</span><br><span class="line">    if ( maxParameterMetadataCount &#x3D;&#x3D; null ) &#123;</span><br><span class="line">        maxParameterMetadataCount &#x3D; ConfigurationHelper.getInt(</span><br><span class="line">                Environment.QUERY_PLAN_CACHE_MAX_STRONG_REFERENCES,</span><br><span class="line">                factory.getProperties(),</span><br><span class="line">                DEFAULT_PARAMETER_METADATA_MAX_COUNT</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;获取查询计划支持最大的上限(hibernate.query.plan_cache_max_size)</span><br><span class="line">    Integer maxQueryPlanCount &#x3D; ConfigurationHelper.getInteger(</span><br><span class="line">            Environment.QUERY_PLAN_CACHE_MAX_SIZE,</span><br><span class="line">            factory.getProperties()</span><br><span class="line">    );</span><br><span class="line">    if ( maxQueryPlanCount &#x3D;&#x3D; null ) &#123;</span><br><span class="line">        maxQueryPlanCount &#x3D; ConfigurationHelper.getInt(</span><br><span class="line">                Environment.QUERY_PLAN_CACHE_MAX_SOFT_REFERENCES,</span><br><span class="line">                factory.getProperties(),</span><br><span class="line">                DEFAULT_QUERY_PLAN_MAX_COUNT</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    queryPlanCache &#x3D; new BoundedConcurrentHashMap( maxQueryPlanCount, 20, BoundedConcurrentHashMap.Eviction.LIRS );</span><br><span class="line">    parameterMetadataCache &#x3D; new BoundedConcurrentHashMap&lt;&gt;(</span><br><span class="line">            maxParameterMetadataCount,</span><br><span class="line">            20,</span><br><span class="line">            BoundedConcurrentHashMap.Eviction.LIRS</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    nativeQueryInterpreter &#x3D; factory.getServiceRegistry().getService( NativeQueryInterpreter.class );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通过上述的QueryPlanCache方法，我们可以发现在application.properties中配置的spring.jpa.properties.hibernate.query.plan_parameter_metadata_max_size和spring.jpa.properties.hibernate.query.plan_cache_max_size属性在QueryPlanCache初始化中使用到了，但是和我们想的不一样的是这里的大小不是兆或者是字节大小，而是能够容纳元素的数量。<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>综合以上，我们再看下之前内存溢出保存下来的快照和我们在application.propperties中配置的值，如下图：</strong></p>
+<img src="/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/Segment.png" class title="BoundedConcurrentHashMap元素数量">
+<img src="/2020/06/23/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-spring-jpa%E7%BC%93%E5%AD%98%E6%BA%A2%E5%87%BA/jpa%E7%BC%93%E5%AD%98%E9%85%8D%E7%BD%AE.png" class title="application.properties配置">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>通过我们对堆内存的快照的分析，我们可以看到BoundenConcurrentHashMap元素数量达到73时已经沾满了内存，而我们在application.properties中配置的是256，所以达不到BoundedConcurrentHashMap的淘汰机制，新元素插入不进去，旧元素不能及时淘汰回收从而导致BoundedConcurrentHashMap越来越大直到内存溢出。</strong><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>通过将application.properties中的spring.jpa.properties.hibernate.query.plan_parameter_metadata_max_size和spring.jpa.properties.hibernate.query.plan_cache_max_size属性的值同时改为32，完美的解决了该问题。</strong></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%8A%80%E6%9C%AF-%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA-%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" rel="tag"># 技术,内存溢出,内存泄露</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/05/18/Kafka%E5%AE%9E%E6%88%98/" rel="next" title="Kafka实战">
+                <i class="fa fa-chevron-left"></i> Kafka实战
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/author.jpg"
+                alt="Marchen" />
+            
+              <p class="site-author-name" itemprop="name">Marchen</p>
+              <p class="site-description motion-element" itemprop="description">原来我很快乐，只是不愿承认</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-问题和思路"><span class="nav-text">1.问题和思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-BoundedConcurrentHashMap"><span class="nav-text">2.BoundedConcurrentHashMap</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-BoundedConcurrentHashMap特性"><span class="nav-text">2.1. BoundedConcurrentHashMap特性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-BoundedConcurrentHashMap简单的源码分析"><span class="nav-text">2.2 BoundedConcurrentHashMap简单的源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-1-BoundedConcurrentHashMap的初始化和属性值"><span class="nav-text">2.2.1 BoundedConcurrentHashMap的初始化和属性值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-2-Semgent的初始化"><span class="nav-text">2.2.2 Semgent的初始化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-3-Segment的插入"><span class="nav-text">2.2.3 Segment的插入</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-4-Segment的获取"><span class="nav-text">2.2.4 Segment的获取</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-5-EvictionPolicy"><span class="nav-text">2.2.5 EvictionPolicy</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-QueryPlanCache"><span class="nav-text">3.QueryPlanCache</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Marchen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.4"></script>
+  <script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.4"></script>
+
+
+  
+
+</body>
+</html>
+<script type="text/javascript" src="/js/src/love.js"></script>
